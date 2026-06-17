@@ -1,0 +1,32 @@
+# Slice 07 — Relevance eval harness
+
+**Goal:** evaluate the open-ended quality of recommendations with Promptfoo (scenario coverage)
+and DeepEval (relevance/faithfulness), including negative scenarios and an LLM-as-judge.
+
+**Type:** Task (quality) · **Priority:** P0 · **Depends on:** 06
+
+## Acceptance criteria
+
+- [ ] Promptfoo config drives a curated set of role scenarios (positive + negative) through the CLI/core.
+- [ ] DeepEval metrics score relevance and faithfulness of the shortlist + rationale.
+- [ ] Negative scenarios included (no viable match, location-blocked, unverified new joiner,
+      adjacent-skill case); synthetic data added where the dataset lacks them.
+- [ ] A relevance suite scoring 100% triggers a coverage review (treated as a warning, not success).
+- [ ] `make eval` runs deterministic scenario evals AND the relevance suites.
+
+## Tasks
+
+- [ ] **Datasets** (`evals/datasets/`) — golden role scenarios with expected qualitative outcomes;
+      label positives/negatives; document provenance of any synthetic data.
+- [ ] **Promptfoo** (`evals/promptfoo.yaml`) — providers/prompts wired to the matcher; assertions
+      for must-include / must-exclude candidates and explanation properties.
+- [ ] **DeepEval** (`evals/deepeval/`) — relevance + faithfulness metrics; LLM-as-judge config;
+      thresholds chosen deliberately (not 100%).
+- [ ] **Make / CI** — `make eval` runs both layers; CI runs deterministic evals always and relevance
+      evals on a schedule or label (LLM cost-aware).
+- [ ] **Reporting** — eval summary surfaced in PRs that touch prompts/weights (`git-rules.md`).
+
+## Notes
+
+- Relevance, not accuracy, is the primary signal for this open-ended system (README guiding principles).
+- Keep LLM-judge prompts versioned alongside the suites.
