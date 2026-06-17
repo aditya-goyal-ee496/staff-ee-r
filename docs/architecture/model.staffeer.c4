@@ -1,0 +1,126 @@
+// Canonical architecture model for Staffeer (C1 context + C2 containers).
+// Rendered Mermaid mirrors live in L1-system-context.md / L2-containers.md.
+model {
+
+  // ---- People -------------------------------------------------------------
+  staffing-manager = actor 'Staffing Manager' {
+    description 'Enters an open role, reviews the ranked shortlist, makes the final call.'
+    metadata {
+      source 'README.md (problem statement); docs/architecture/L1-system-context.md'
+    }
+  }
+  staffing-forum = actor 'Staffing Forum' {
+    description 'HOEs, EMs and leadership reviewing trade-offs in the weekly forum.'
+  }
+  engineer = actor 'Engineering Team' {
+    description 'Builds and tunes the matcher and the eval suites (2-5 people).'
+  }
+
+  // ---- External systems ---------------------------------------------------
+  profiles = system 'Consultant Profiles' {
+    #EXTERNAL
+    technology 'PDF (templated + free-form)'
+    description '50 consultant CVs parsed by Docling.'
+  }
+  feedback = system 'Project Feedback' {
+    #EXTERNAL
+    technology 'Markdown'
+    description 'Client + internal EE feedback per consultant.'
+  }
+  sheet = system 'Demand-Supply Sheet' {
+    #EXTERNAL
+    technology 'xlsx (openpyxl)'
+    description 'Beach / Rolling Off / New Joiners supply tabs and the Open Roles tab.'
+  }
+  llm = system 'OpenRouter / Local LLM' {
+    #EXTERNAL
+    technology 'DSPy over OpenRouter API'
+    description 'Soft-judgment reasoning over PII-scrubbed text.'
+  }
+
+  // ---- The system under design --------------------------------------------
+  staffeer = system 'Staffeer' {
+    technology 'Python 3.12'
+    description 'Ranks and explains consultant fit for an open role; advises, never decides.'
+    metadata {
+      source 'CLAUDE.md; docs/conventions.md; docs/adr/001-hexagonal-eval-first-architecture.md'
+    }
+
+    cli = container 'CLI' {
+      #DRIVING
+      technology 'Python, Typer'
+      description 'Driving adapter: takes a role, prints the ranked shortlist + rationale.'
+    }
+    evals = container 'Eval Harness' {
+      #DRIVING
+      technology 'Promptfoo, DeepEval, pytest'
+      description 'First consumer: scenario coverage + relevance/faithfulness metrics.'
+    }
+
+    core = container 'Domain Core' {
+      #CORE
+      technology 'Python, Pydantic'
+      description 'Pure, deterministic: filter, score, rank, explain. No I/O.'
+
+      filter = component 'Constraint Filter' {
+        #CORE
+        description 'Hard constraints: location (incl. Chennai-open) and start date.'
+      }
+      scorer = component 'Scorer' {
+        #CORE
+        description 'Soft scoring: skills (incl. adjacency), feedback, availability; configurable weights.'
+      }
+      ranker = component 'Ranker' {
+        #CORE
+        description 'Orders candidates and resolves tie-breaks by priority weighting.'
+      }
+      explainer = component 'Explainer' {
+        #CORE
+        description 'Assembles source-referenced rationale and surfaces gaps.'
+      }
+    }
+
+    ports = container 'Ports' {
+      #CORE
+      technology 'Python Protocols'
+      description 'ProfileParser, FeedbackStore, SupplyDemandSource, SemanticIndex, LLMReasoner, PIIScrubber.'
+    }
+
+    adapters = container 'Driven Adapters' {
+      #DRIVEN
+      technology 'Python'
+      description 'Docling, xlsx, markdown, Presidio+spaCy, Milvus, DSPy — each implements a port.'
+    }
+
+    pii = container 'PII Scrubber' {
+      #DRIVEN
+      #GOVERNANCE
+      technology 'Presidio, spaCy'
+      description 'Scrubs profile/feedback text before it crosses to the LLM.'
+    }
+
+    index = datastore 'Semantic Index' {
+      #DRIVEN
+      technology 'Milvus Lite'
+      description 'Embeddings over skills/profiles for semantic retrieval.'
+    }
+  }
+
+  // ---- Relationships ------------------------------------------------------
+  staffing-manager -> cli 'submits a role, reads shortlist + rationale'
+  staffing-forum -> cli 'reviews explanations in the weekly forum'
+  engineer -> evals 'develops, evaluates, tunes'
+
+  cli -> core 'invokes matching pipeline'
+  evals -> core 'drives with curated datasets'
+  core -> ports 'depends on (interfaces)'
+  adapters -> ports 'implements'
+  pii -> ports 'implements PIIScrubber'
+
+  adapters -> profiles 'parses CVs' 'Docling'
+  adapters -> feedback 'reads feedback' 'file I/O'
+  adapters -> sheet 'loads supply + demand' 'openpyxl'
+  adapters -> index 'writes / queries embeddings'
+  adapters -> llm 'reasons over scrubbed text' 'DSPy / HTTP'
+  pii -> llm 'gates text before it leaves the boundary'
+}

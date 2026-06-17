@@ -1,0 +1,31 @@
+// LikeC4 views — C1 (context) and C2 (containers). Nested elements are fully qualified.
+views {
+
+  view index {
+    title 'Staffeer — landscape'
+    include *
+  }
+
+  view context of staffeer {
+    title 'C1 — System Context'
+    include
+      staffeer,
+      staffing-manager, staffing-forum, engineer,
+      profiles, feedback, sheet, llm
+  }
+
+  view containers of staffeer {
+    title 'C2 — Containers'
+    include
+      staffing-manager,
+      staffeer.*,
+      profiles, feedback, sheet, llm
+  }
+
+  view core of staffeer.core {
+    title 'C3 — Domain Core components'
+    include
+      staffeer.core.*,
+      staffeer.ports
+  }
+}

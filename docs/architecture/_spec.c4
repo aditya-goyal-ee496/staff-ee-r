@@ -1,0 +1,25 @@
+// LikeC4 specification — element kinds, tags, and styles for the Staffeer model.
+// See docs/rules/likec4.md. Naming: kebab-case ids, single-quoted values, UPPER_CASE tags.
+specification {
+
+  element actor {
+    style {
+      shape person
+    }
+  }
+  element system
+  element container
+  element component
+  element datastore {
+    style {
+      shape cylinder
+    }
+  }
+
+  // Hexagonal roles — applied as #CORE / #DRIVING / #DRIVEN / #EXTERNAL.
+  tag CORE
+  tag DRIVING
+  tag DRIVEN
+  tag EXTERNAL
+  tag GOVERNANCE
+}
