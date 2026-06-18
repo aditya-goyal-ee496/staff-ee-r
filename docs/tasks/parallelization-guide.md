@@ -31,7 +31,7 @@ fans out. The shortest path to a *shippable beach matcher* is
 
 | Track | Scope (grouped into ~1–2 PRs) | Opens after | Maps to old slice |
 |---|---|---|---|
-| **A — Domain core** | `matching.py` (location + start-date), `skills.py` (normalize + adjacency), `scoring.py` (lexical contributor + contribution-sum), `ranking.py`, `explain.py`. Pure, no I/O. | C1 | 02, 03 |
+| **A — Domain core** | `eligibility.py` (location + availability), `skills.py` (normalize + adjacency), `scoring.py` (lexical contributor + contribution-sum), `ranking.py`, `explain.py`. Pure, no I/O. | C1 | 02, 03 |
 | **B — Data adapters** | `xlsx_supply_demand.py`, `docling_profiles.py`, `markdown_feedback.py` (one owner). | C1 | 01, 04 |
 | **C — Security/PII** | `presidio_pii.py` + security negative test. | C1 | 04 |
 | **D — Semantic adapter** | `milvus_index.py` round-trip + embedding choice (ADR). | C2 | 05 |
