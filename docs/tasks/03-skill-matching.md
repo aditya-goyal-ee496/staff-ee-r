@@ -19,19 +19,19 @@ adjacent-skill substitutions — all deterministic, before any LLM is involved.
 
 ## Tasks
 
-- [ ] **Skill normalization** (`domain/skills.py`) — case/space normalization, alias map
-      (e.g. `k8s`→`kubernetes`), parse role required-skills (split `;`, strip `(expert)` qualifiers).
-- [ ] **Adjacency map** — data-driven `{skill: [acceptable_alternatives]}`; seed from the brief
-      (Kotlin↔Java, etc.). Document how to extend it.
-- [ ] **Scorer** (`domain/scoring.py`) — coverage score = exact matches + weighted adjacency;
-      pure function over `(role, consultant)` returning a `SkillScore` value object with detail.
+- [x] **Skill normalization** (`domain/skills.py`) — `canonical_skill` (case/space, strip
+      `(expert)` qualifiers) + alias map (e.g. `k8s`→`kubernetes`); `canonical_skills` de-dups.
+- [x] **Adjacency map** — data-driven `DEFAULT_ADJACENCY = {skill: (alternatives,)}`; seeded from
+      the brief (Kotlin↔Java, etc.) with extension documented in the module docstring.
+- [x] **Scorer** (`domain/scoring.py::skill_coverage`) — coverage = exact matches + weighted
+      adjacency; pure function over `(role, consultant)` returning a `SkillScore` with detail.
 - [ ] **Ranker** (`domain/ranking.py`) — order eligible results by score; deterministic tie-break
       (priority weighting → name). Configurable weights object (no hard-coding).
 - [ ] **Explainer** (`domain/explain.py`) — assemble `Explanation` listing matched/missing/adjacent
       skills and the gap summary; this is the contract later slices enrich.
 - [ ] **CLI** — extend `match` to show score + matched/missing/adjacent skills per consultant.
-- [ ] **Tests** — exact-match ranking, adjacency substitution scored lower, missing-skill gap text,
-      and a **partial-coverage** negative scenario (nobody fully matches).
+- [~] **Tests** — coverage scoring done (`tests/unit/test_skills.py`, `test_scoring.py`): exact,
+      partial, adjacency-scored-lower, missing-skill gap text. Ranking tests land with the ranker.
 - [ ] **Scenario evals** — extend golden table with skill-ranking expectations.
 
 ## Notes
