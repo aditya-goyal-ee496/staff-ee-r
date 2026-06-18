@@ -42,6 +42,11 @@ python_version = "3.12"
 strict = true
 files = ["src"]
 
+# openpyxl ships no type stubs; isolate the untyped import to the adapter boundary.
+[[tool.mypy.overrides]]
+module = ["openpyxl.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

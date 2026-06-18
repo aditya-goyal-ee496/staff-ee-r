@@ -7,12 +7,16 @@ implementations; Track B–E adapters reuse these same suites unchanged.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import date
+from pathlib import Path
 
 import pytest
 
 from staffeer.adapters.memory_supply_demand import InMemorySupplyDemandSource
+from staffeer.adapters.xlsx_supply_demand import XlsxSupplyDemandSource
 from staffeer.domain.models import Consultant, Priority, Role, SupplyState
+from staffeer.ports.supply_demand import SupplyDemandSource
 
 SAMPLE_ROLE = Role(
     id="ROLE-01",
@@ -23,7 +27,7 @@ SAMPLE_ROLE = Role(
     priority=Priority.HIGH,
 )
 BEACH_CONSULTANT = Consultant(
-    id="C-01",
+    id="beach-1",
     name="Asha Rao",
     location="Chennai",
     skills=("python",),
@@ -44,7 +48,33 @@ def beach_consultant() -> Consultant:
     return BEACH_CONSULTANT
 
 
-@pytest.fixture
-def supply_source() -> InMemorySupplyDemandSource:
-    """An in-memory `SupplyDemandSource` seeded with one role and one beach consultant."""
-    return InMemorySupplyDemandSource(roles=[SAMPLE_ROLE], consultants=[BEACH_CONSULTANT])
+@pytest.fixture(params=["in_memory", "xlsx"])
+def supply_source(
+    request: pytest.FixtureRequest, workbook_factory: Callable[..., Path]
+) -> SupplyDemandSource:
+    """Each `SupplyDemandSource` implementation runs the same contract (RULE-002).
+
+    Both the in-memory source and the real xlsx adapter must yield exactly `SAMPLE_ROLE` and
+    `BEACH_CONSULTANT`, so the workbook rows are crafted to parse into those value objects.
+    """
+    if request.param == "in_memory":
+        return InMemorySupplyDemandSource(roles=[SAMPLE_ROLE], consultants=[BEACH_CONSULTANT])
+    path = workbook_factory(
+        as_of="2026-06-01",
+        roles=[
+            [
+                "ROLE-01",
+                "Backend Engineer",
+                "",
+                "",
+                "python",
+                "2026-07-01",
+                "Chennai",
+                "No",
+                "High",
+                "",
+            ]
+        ],
+        beach=[[1, "Asha Rao", "asha.rao@x.example", "", "python", "Chennai", "No", 10, ""]],
+    )
+    return XlsxSupplyDemandSource(path)
