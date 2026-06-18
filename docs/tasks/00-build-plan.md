@@ -2,9 +2,10 @@
 
 The complete, task-level plan to build Staffeer. Decomposed by **vertical slicing**
 (`docs/commands/breakdown.md`): each slice delivers user-visible value end to end and is
-shippable on its own. Follow the execution loop in `docs/rules/task-execution.md` — simplest
-solution → `make format/test/lint` → **review & approval** → mark `[x]` → commit per
-`docs/rules/git-rules.md`.
+shippable on its own. Follow the execution loop in `docs/rules/task-execution.md` —
+**approve the spec/contract first** (`docs/rules/spec-driven-development.md`) → contract/unit
+test → simplest solution → `make format/test/lint` → **review & approval** → mark `[x]` →
+commit per `docs/rules/git-rules.md`.
 
 State markers (`docs/rules/long-running-tasks.md`): `[ ]` not started · `[~]` in progress · `[x]` done.
 

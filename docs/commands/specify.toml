@@ -1,0 +1,68 @@
+description = "Author a reviewable spec (contract, invariants, acceptance criteria, error mapping) before any implementation, per Spec-Driven Development"
+
+prompt = """
+## Spec Authoring Workshop
+
+Turn a well-defined work item into a **reviewable specification** that becomes the source of
+truth for implementation. This is the first step of the SDD loop in
+`docs/rules/spec-driven-development.md`: **spec -> contract test -> implementation**. Use this
+after `/clarify` (idea is crisp) and `/breakdown` (work item is appropriately sized), and
+before writing any production code.
+
+{{args}}
+
+## When to use
+
+- Authoring a new **port** in the C1/C2 contract waves (`docs/tasks/00b-contracts.md`):
+  `SupplyDemandSource`, `ProfileParser`, `FeedbackStore`, `SemanticIndex`, `LLMReasoner`,
+  `PIIScrubber` — the spec *is* the frozen contract Tracks A-F build against.
+- Specifying a **domain component** (constraint filter, scorer, ranker, explainer) or a shared
+  shape (`ScoreContribution`, `ExplanationFactor`).
+- Amending a contract that turned out wrong (`spec-driven-development.md` RULE-004).
+
+## Process
+
+### Step 1: Establish context
+Read the owning task file in `docs/tasks/`, `docs/conventions.md`,
+`docs/rules/hexagonal-architecture.md`, and `docs/rules/domain-driven-design.md` so the spec is
+grounded in the ubiquitous language (beach, roll-off, new joiner, co-location, Chennai-open).
+
+### Step 2: Draft the contract
+Capture (AskUserQuestion only where genuinely ambiguous):
+- **Signature** — Protocol methods or pure-function signatures; domain types only at the boundary.
+- **Invariants** — no silent drops; PII scrubbed before the LLM; determinism where required;
+  explanations always present.
+- **Acceptance criteria** — 3-7 observable, testable outcomes.
+- **Error mapping** — the `StaffeerError` subclass each failure surfaces.
+- **Inputs/outputs** — the domain value objects exchanged.
+
+### Step 3: Write the spec
+Write a `## Spec` section into the owning slice file (and the Protocol stub frozen in the C1/C2
+wave, `docs/tasks/00b-contracts.md`), with: Contract (code block), Invariants, Acceptance
+criteria, Error mapping, and a pointer to the contract test `tests/contract/test_<port>.py`.
+
+### Step 4: Define the contract test
+Specify (don't implement) the `tests/contract/` suite that makes the spec executable
+(`spec-driven-development.md` RULE-002), listing behaviours including **negative scenarios**.
+The null-object adapter and every real adapter must pass this one suite.
+
+### Step 5: Request approval
+Present the spec for review. **Do not start implementation until the spec is approved**
+(`spec-driven-development.md` RULE-001; `task-execution.md` review gate). On approval the
+contract is frozen and the owning track can proceed in parallel behind its null object
+(`docs/tasks/parallelization-guide.md`).
+
+## Guidelines
+
+DO: keep the spec to one screen; state behaviour not implementation; name the negative scenarios;
+use the ubiquitous language.
+DON'T: write code before approval; put infrastructure types in a contract; let a spec sprawl
+(`/breakdown` it); change a frozen contract silently (amend + re-approve).
+
+## Workflow Summary
+1. Context: read the task file and binding rules.
+2. Contract: signature, invariants, acceptance criteria, error mapping.
+3. Write: spec into the task file / port stub.
+4. Contract test: specify the executable spec in `tests/contract/`.
+5. Approve: review before any implementation; the frozen contract unlocks parallel work.
+"""

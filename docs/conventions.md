@@ -33,12 +33,20 @@ src/staffeer/
   config.py      # settings loaded from env (.env); no secrets in code
   cli/           # Typer entry point (driving adapter)
 tests/
+  contract/      # executable specs: one suite per port; EVERY adapter must pass its port's suite
   unit/          # mirrors src/staffeer/; domain core has no mocks needed
   integration/   # adapters against real fixtures (sampled raw data)
 evals/           # scenario evals now; Promptfoo + DeepEval suites + datasets later
 docs/            # control plane: rules/, principles/, architecture/, adr/, tasks/, commands/
 planning/        # raw-data only (git-ignored)
 ```
+
+**Spec-driven** (`docs/rules/spec-driven-development.md`): the **port is the spec**. All port
+Protocols, domain value objects, and their `tests/contract/` suites are frozen in the **C1/C2
+contract waves** (`docs/tasks/00b-contracts.md`) and **approved before** implementation begins.
+Each port's contract suite is the executable spec the null object and every real adapter must
+pass. Freezing these contracts up front is the fan-out boundary that lets Tracks A–F run **in
+parallel** (`docs/tasks/parallelization-guide.md`).
 
 **Dependency rule** (`docs/rules/hexagonal-architecture.md`): `domain/` imports nothing from
 `adapters/`, `cli/`, or third-party I/O libraries. Dependencies point inward. Adapters depend
@@ -66,6 +74,10 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
   outcome (e.g. `no_viable_match_returns_zero_eligible`). Tests are independent and order-free.
 - **Test pyramid:** many unit tests > fewer integration tests > minimal e2e. Test doubles only
   for external dependencies — never mock domain logic.
+- **Contract tests** (`tests/contract/`): one suite per port, written from the spec **before**
+  the adapter (`docs/rules/spec-driven-development.md` RULE-002). Every adapter for a port must
+  pass that port's suite; a fake satisfying the suite is a legitimate integration double. Prefer
+  contract tests over ad-hoc mocking of external services.
 - **Domain core:** unit-tested directly, deterministic. Cover hard-constraint logic (location,
   dates) exhaustively — these must be repeatable.
 - **Adapters:** integration-tested against small real fixtures sampled from `raw-data`.
@@ -109,7 +121,7 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
 
 - **Conventional Commits:** `type(scope): description` — `feat|fix|chore|docs|refactor|test|ci`;
   imperative present tense; subject <72 chars; body explains *why*; reference work items
-  (`Refs: docs/tasks/02-...`).
+  (`Refs: docs/tasks/02-beach-matching.md`).
 - **Branches:** `type/short-description` (e.g. `feat/beach-matching`) off `main`. Never commit
   directly to `main`.
 - **PRs:** small, reviewable in <30 min; squash WIP/fixup commits; describe what/why/how-to-test;
@@ -121,8 +133,10 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
 - Multi-stage work is tracked as markdown checklists in `docs/tasks/`: `[ ]` not started,
   `[~]` in progress (update the item in place; add subtasks/detail under it), `[x]` done.
   Each checklist must carry enough detail to resume with empty context.
-- Execution loop: implement the simplest solution -> `make format`/`test`/`lint` ->
-  **request review and wait for approval** -> mark `[x]` -> commit per git-rules.
+- Execution loop (`docs/rules/spec-driven-development.md`): **author + approve the spec** ->
+  write the contract/unit test from it -> implement the simplest solution ->
+  `make format`/`test`/`lint` -> **request review and wait for approval** -> mark `[x]` ->
+  commit per git-rules.
 
 ## SOLID & clean code
 
@@ -133,6 +147,7 @@ hierarchies; dependency injection) and `docs/rules/clean-code.md` apply to all p
 
 | Concern | File |
 |---|---|
+| Spec-driven development | `docs/rules/spec-driven-development.md` |
 | Architecture / ports & adapters | `docs/rules/hexagonal-architecture.md` |
 | Domain modelling | `docs/rules/domain-driven-design.md` |
 | OO design | `docs/rules/solid-principles.md` |

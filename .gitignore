@@ -2,3 +2,4 @@ planning/raw-data
 .env
 .claude
 .obsidian
+.DS_Store
