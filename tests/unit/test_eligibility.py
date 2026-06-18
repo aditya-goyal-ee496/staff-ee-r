@@ -25,7 +25,13 @@ def test_chennai_open_role_admits_a_chennai_consultant() -> None:
     assert location_constraint(_consultant("Chennai, India"), role).passed is True
 
 
-def test_chennai_open_role_excludes_a_non_chennai_consultant() -> None:
+def test_chennai_open_role_admits_a_chennai_open_consultant_based_elsewhere() -> None:
+    role = Role(id="R-01", title="Engineer", location="Chennai", chennai_open=True)
+    willing = Consultant(id="C-01", name="Karan", location="Bengaluru", chennai_open=True)
+    assert location_constraint(willing, role).passed is True
+
+
+def test_chennai_open_role_excludes_an_unwilling_non_chennai_consultant() -> None:
     role = Role(id="R-01", title="Engineer", location="Chennai", chennai_open=True)
     assert location_constraint(_consultant("Bangalore"), role).passed is False
 

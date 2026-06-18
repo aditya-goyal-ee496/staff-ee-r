@@ -45,6 +45,8 @@ class Consultant(ValueObject):
     grade: str | None = None
     skills: tuple[str, ...] = ()
     state: SupplyState = SupplyState.BEACH
+    # Willing to work on-site for a Chennai co-located team even if based elsewhere (brief).
+    chennai_open: bool = False
     # Pre-baked optional fields for later supply states (`docs/tasks/08-supply-expansion.md`).
     available_from: date | None = None
     confidence: float = 1.0

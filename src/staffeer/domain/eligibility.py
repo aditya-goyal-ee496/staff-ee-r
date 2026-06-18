@@ -9,8 +9,9 @@ No I/O lives here (dependency rule, `docs/rules/hexagonal-architecture.md`).
 **Location-string contract** (what Track B's xlsx loader must produce): a location is
 `"City"` or `"City, Region"`. `Region` defaults to **India** when only a city is given, since
 Parity is an India-based consultancy. "Remote" is detected by the literal token; a remote role
-co-located nowhere accepts any consultant in the same region (India). Co-located and
-Chennai-open roles require physical presence in the named city (`CLAUDE.md` domain rules).
+co-located nowhere accepts any consultant in the same region (India). A co-located non-Chennai
+role requires the named city; a Chennai co-located role admits a Chennai-based *or* a
+Chennai-open consultant — one willing to work on-site in Chennai (`CLAUDE.md` domain rules).
 """
 
 from __future__ import annotations
@@ -48,8 +49,10 @@ def _is_remote(location: str) -> bool:
 def location_constraint(consultant: Consultant, role: Role) -> ConstraintCheck:
     """Whether `consultant`'s location satisfies `role`'s location demand, with a reason."""
     if role.chennai_open:
-        satisfied = _city_of(consultant.location) == _CHENNAI
-        return _location_outcome(satisfied, consultant, "Chennai co-located team")
+        satisfied = _city_of(consultant.location) == _CHENNAI or consultant.chennai_open
+        return _location_outcome(
+            satisfied, consultant, "Chennai co-located team (Chennai-based or Chennai-open)"
+        )
     if role.co_location:
         satisfied = _city_of(consultant.location) == _city_of(role.location)
         return _location_outcome(satisfied, consultant, f"co-located in {role.location}")
