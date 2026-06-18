@@ -12,25 +12,25 @@ until this lands. Keep it tiny (one reviewer, <30 min). See
 
 ## Acceptance criteria
 
-- [ ] `make install` provisions the venv; `make test`, `make lint`, `make format` all run and pass.
-- [ ] CI **fast lane** runs `make lint` + `make test` on every PR and on push to `main`, and is green.
-- [ ] The package imports and `config.py` reads env without secrets in code.
-- [ ] Heavy LLM/NLP deps live in optional groups so `make install` stays fast.
+- [x] `make install` provisions the venv; `make test`, `make lint`, `make format` all run and pass.
+- [x] CI **fast lane** runs `make lint` + `make test` on every PR and on push to `main`, and is green.
+- [x] The package imports and `config.py` reads env without secrets in code.
+- [x] Heavy LLM/NLP deps live in optional groups so `make install` stays fast.
 
 ## Tasks
 
-- [ ] **Project config** — `pyproject.toml` (uv, hatchling), `.mise.toml` (python 3.12, uv),
+- [x] **Project config** — `pyproject.toml` (uv, hatchling), `.mise.toml` (python 3.12, uv),
       `.python-version`. Core deps: `pydantic`, `openpyxl`, `typer`. Optional groups:
       `llm` (dspy), `nlp` (presidio, spacy, pymilvus), `parse` (docling), `eval` (deepeval).
       Dev group: `pytest`, `ruff`, `mypy`.
-- [ ] **Tooling config** — ruff (line-length 100, `E,F,I,UP,B,SIM`), mypy strict, pytest
+- [x] **Tooling config** — ruff (line-length 100, `E,F,I,UP,B,SIM`), mypy strict, pytest
       (`pythonpath=src`, `testpaths=tests`). Wire `Makefile` targets to real commands.
-- [ ] **Package skeleton** — `src/staffeer/{__init__,config}.py` and empty
+- [x] **Package skeleton** — `src/staffeer/{__init__,config}.py` and empty
       `domain/ ports/ adapters/ cli/` packages. `config.py` reads `STAFFEER_DATA` +
       `OPENROUTER_API_KEY` from env (12-factor; no secrets in code).
-- [ ] **`.env.example`** — `OPENROUTER_API_KEY=`, commented `STAFFEER_DATA`.
-- [ ] **Trivial test** — one passing unit test (e.g. config loads defaults) so `make test` is green.
-- [ ] **CI fast lane** (`.github/workflows/ci.yml`) — install core deps only, run `make lint`
+- [x] **`.env.example`** — `OPENROUTER_API_KEY=`, commented `STAFFEER_DATA`.
+- [x] **Trivial test** — one passing unit test (e.g. config loads defaults) so `make test` is green.
+- [x] **CI fast lane** (`.github/workflows/ci.yml`) — install core deps only, run `make lint`
       + `make test`; required for merge (`docs/rules/git-rules.md` RULE-006). No secrets, no
       network, no heavy models. The **heavy lane** (`integration.yml`) is scaffolded in
       [`00b-contracts.md`](00b-contracts.md)/Track F as the real-data + relevance evals land.

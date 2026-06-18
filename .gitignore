@@ -3,3 +3,9 @@ planning/raw-data
 .claude
 .obsidian
 .DS_Store
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+*.py[cod]
