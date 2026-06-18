@@ -13,12 +13,12 @@ explains exclusions.
 
 ## Acceptance criteria
 
-- [ ] `make match ROLE="ROLE-01"` prints eligible beach consultants with their grade/location/skills.
-- [ ] Location logic: co-located Chennai role honours `Chennai-open`; co-located non-Chennai needs
+- [x] `make match ROLE="ROLE-02"` prints eligible beach consultants with their grade/location/skills.
+- [x] Location logic: co-located Chennai role honours `Chennai-open`; co-located non-Chennai needs
       same city; remote-India roles accept any India location; city-specific non-remote needs same city.
-- [ ] Start-date logic: available by `role.start + buffer` (default 7 days); beach = available now.
-- [ ] Every excluded consultant carries a human-readable reason (no silent drops).
-- [ ] `--show-excluded` lists exclusions with reasons.
+- [x] Start-date logic: available by `role.start + buffer` (default 7 days); beach = available now.
+- [x] Every excluded consultant carries a human-readable reason (no silent drops).
+- [x] `--show-excluded` lists exclusions with reasons.
 
 ## Tasks
 
@@ -30,14 +30,14 @@ explains exclusions.
       buffer configurable; reason states the dates and computed latest-acceptable.
 - [x] **Screen** (`screen_consultants`) — evaluate all beach consultants; return results for all
       (eligible first) so exclusions are explainable.
-- [ ] **CLI** (`cli/main.py`) — Typer app: `roles` (list) and `match ROLE_ID [--data] [--show-excluded]`.
-      Map `SupplyDemandError` / role-not-found to clear messages + non-zero exit. (integration slice I1)
+- [x] **CLI** (`cli/main.py`) — Typer app: `roles` (list) and `match ROLE_ID [--data] [--show-excluded]`,
+      `staffeer` console script. Maps `SupplyDemandError` / role-not-found to a clear message + exit 1. (I1)
 - [x] **Unit tests** (`tests/unit/test_eligibility.py`) — each location case (incl. Chennai-open
       positive/negative), availability pass/fail/within-buffer, ordering, and the **no-viable-match**
       negative scenario.
-- [ ] **Scenario evals** (`evals/test_constraint_scenarios.py`) — golden table incl. negatives;
-      deterministic, must be 100% green. Add `evals/README.md` describing the two eval layers.
-- [ ] Point `make eval` at `uv run pytest evals` for now.
+- [x] **Scenario evals** (`evals/test_constraint_scenarios.py`) — golden table incl. the
+      no-viable-match negative; deterministic, 100% green. `evals/README.md` describes the two layers.
+- [x] Point `make eval` at `uv run pytest evals` for now.
 
 ## Notes
 

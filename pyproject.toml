@@ -9,6 +9,9 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.scripts]
+staffeer = "staffeer.cli.main:main"
+
 [project.optional-dependencies]
 # Heavy groups stay optional so `make install` (core + dev) is fast until each slice lands.
 llm = ["dspy-ai>=2.4"]

@@ -13,9 +13,8 @@ install:  ## Install dependencies into the project venv (uv sync)
 test:  ## Run unit + integration tests
 	uv run pytest
 
-eval:  ## Run LLM evaluation suites (Promptfoo + DeepEval)
-	uv run promptfoo eval -c evals/promptfoo.yaml
-	uv run pytest evals/deepeval
+eval:  ## Run deterministic scenario evals (Promptfoo + DeepEval relevance suites land later)
+	uv run pytest evals
 
 lint:  ## Check formatting, lint, and types
 	uv run ruff format --check .
