@@ -21,32 +21,32 @@ open after **C2**. See [`parallelization-guide.md`](parallelization-guide.md).
 
 ### Acceptance criteria
 
-- [ ] Frozen Pydantic models import with **no I/O** (dependency rule holds).
-- [ ] Every port is a `Protocol` with a matching **null-object** adapter that satisfies it.
-- [ ] `build_matcher(config) -> Matcher` and `Matcher.match(role) -> Shortlist` exist and run
+- [~] Frozen Pydantic models import with **no I/O** (dependency rule holds).
+- [~] Every port is a `Protocol` with a matching **null-object** adapter that satisfies it.
+- [~] `build_matcher(config) -> Matcher` and `Matcher.match(role) -> Shortlist` exist and run
       end-to-end returning an empty/inert result (all ports default to their null object).
-- [ ] A **contract-test suite per port** in `tests/contract/`, parametrised over an
+- [~] A **contract-test suite per port** in `tests/contract/`, parametrised over an
       implementation; the null object passes it now and every real adapter (Tracks B–E) reuses it
       unchanged (`docs/rules/spec-driven-development.md` RULE-002). `make test`/`lint` green.
 
 ### Tasks
 
-- [ ] **Models / value objects** (`domain/models.py`) — `SupplyState`, `Priority` enums;
+- [~] **Models / value objects** (`domain/models.py`) — `SupplyState`, `Priority` enums;
       `Consultant`, `Role` (frozen Pydantic). **Pre-bake all known optional fields with safe
       defaults now** so later additions are never breaking: `Consultant.available_from`,
       `confidence`, `skills_verified`, provenance. Plus `ConstraintCheck(name, passed, reason)`,
       `EligibilityResult(consultant, checks)`, `SkillScore`, **`ScoreContribution(source,
       value, weight, detail)`**, `Explanation` / **`ExplanationFactor`**, `Shortlist`. Skills
       as `list[str]`; dates as `date`. Ubiquitous language from the brief.
-- [ ] **Ports understood today** (`ports/`) — `SupplyDemandSource` (`open_roles()`,
+- [~] **Ports understood today** (`ports/`) — `SupplyDemandSource` (`open_roles()`,
       `role(id)`, `consultants(*states)`); `ProfileParser.parse(path) -> ParsedProfile`;
       `FeedbackStore.for_consultant(id) -> Feedback`; `PIIScrubber.scrub(text) -> ScrubbedText`.
-- [ ] **Null-object adapters** (`adapters/`) — `NullProfileParser`, `NullFeedbackStore`,
+- [~] **Null-object adapters** (`adapters/`) — `NullProfileParser`, `NullFeedbackStore`,
       `NullPIIScrubber`, plus an empty in-memory `SupplyDemandSource` for tests.
-- [ ] **Composition root** — `build_matcher(config) -> Matcher`, defaulting every port to its
+- [~] **Composition root** — `build_matcher(config) -> Matcher`, defaulting every port to its
       null object; `Matcher.match(role) -> Shortlist`. **Fail closed:** if an LLM/semantic
       path is later wired without a real `PIIScrubber`, `build_matcher` raises.
-- [ ] **Contract suites** (`tests/contract/`) — one per port (`test_supply_demand.py`,
+- [~] **Contract suites** (`tests/contract/`) — one per port (`test_supply_demand.py`,
       `test_profiles.py`, `test_feedback.py`, `test_pii.py`), parametrised over an implementation
       fixture and asserting the spec's behaviour **including negative scenarios** (malformed input
       → mapped `StaffeerError`, empty results). The null object is the first implementation to
