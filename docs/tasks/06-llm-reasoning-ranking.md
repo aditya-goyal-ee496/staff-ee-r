@@ -4,7 +4,14 @@
 LLM behind a port, producing the final ranked, explained shortlist. Free-text role queries
 become possible here.
 
-**Type:** Feature · **Priority:** P0 · **Depends on:** 05
+**Type:** Feature · **Priority:** P0 · **Depends on:** C2 ([`00b-contracts.md`](00b-contracts.md)) + Track C (PII scrubber)
+
+> **Parallelization.** The `LLMReasoner` port is frozen in **C2**; the DSPy/OpenRouter adapter +
+> free-text role parsing + soft-score contributor are **Track E** (unit-tested with a stubbed
+> reasoner, mergeable behind `NullLLMReasoner`). Wiring it in (`Null→Dspy`, free-text role, LLM
+> logging) is integration slice **I4** — order-free with respect to I3 (both additive
+> contributors). Does **not** require semantic (05): an absent contributor scores 0.
+> See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Acceptance criteria
 

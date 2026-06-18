@@ -3,7 +3,13 @@
 **Goal:** extend matching beyond the beach to people rolling off (free on a future date) and new
 joiners (joining on a future date), honouring date buffers, confidence, and unverified skills.
 
-**Type:** Feature · **Priority:** P1 · **Depends on:** 02, 06
+**Type:** Feature · **Priority:** P1 · **Depends on:** I1 + (I2 or I4 weighting seam)
+
+> **Parallelization.** Mostly **Track A + B** work, and largely parallel because the model fields
+> it needs (`confidence`, `skills_verified`, provenance, `available_from`) were **pre-baked into
+> the frozen `Consultant` in C1** — so no breaking model change is required here. Lands as
+> integration slice **I5**: a `--include rolling_off,new_joiner` flag + a provenance-weighting
+> `ScoreContribution`. See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Acceptance criteria
 

@@ -3,7 +3,14 @@
 **Goal:** complement lexical skill matching with semantic similarity so a role's intent (not
 just exact tokens) retrieves relevant consultants.
 
-**Type:** Feature · **Priority:** P1 · **Depends on:** 03, 04
+**Type:** Feature · **Priority:** P1 · **Depends on:** C2 ([`00b-contracts.md`](00b-contracts.md)) + Track C (PII scrubber)
+
+> **Parallelization.** The `SemanticIndex` port is frozen in **C2**; the Milvus adapter is
+> **Track D** (round-trip testable in isolation, mergeable behind `NullSemanticIndex`). The blend
+> is added as a named semantic `ScoreContribution`. Wiring it into the matcher (`Null→Milvus`,
+> `make index`, `--semantic` flag) is integration slice **I3** (depends on I2 + Track D + the
+> Track C scrubber, since embedded text must be PII-scrubbed).
+> See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Acceptance criteria
 

@@ -3,7 +3,14 @@
 **Goal:** evaluate the open-ended quality of recommendations with Promptfoo (scenario coverage)
 and DeepEval (relevance/faithfulness), including negative scenarios and an LLM-as-judge.
 
-**Type:** Task (quality) · **Priority:** P0 · **Depends on:** 06
+**Type:** Task (quality) · **Priority:** P0 · **Depends on:** I4 + Track F (eval scaffolding)
+
+> **Parallelization.** The deterministic eval *scaffolding* (golden-table harness, `evals/README`,
+> heavy-lane `integration.yml`) is **Track F** and can start right after C1 — each integration
+> slice grows its golden table as its acceptance spec. This slice = integration **I6**: the LLM
+> relevance suites (Promptfoo + DeepEval, LLM-as-judge) that run only on the **heavy lane**
+> (scheduled / `run-heavy` label). A relevance suite scoring 100% is a coverage *warning*, never a
+> pass. See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Acceptance criteria
 

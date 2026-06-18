@@ -3,7 +3,12 @@
 **Goal:** stretch goals beyond the core matcher. Only start after 06/07 are solid; each is
 independently optional.
 
-**Type:** Epic (optional) · **Priority:** P3 · **Depends on:** 06
+**Type:** Epic (optional) · **Priority:** P3 · **Depends on:** I4
+
+> **Parallelization.** Each item is integration slice **I7** — a new driving adapter or use case
+> over the **unchanged** domain core, so they are mutually parallel and fully optional. The
+> hexagonal boundary keeps them additive (e.g. persistence is a new `SupplyDemandSource` adapter
+> behind the existing port). See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Candidate work items (use /clarify + /breakdown before starting each)
 

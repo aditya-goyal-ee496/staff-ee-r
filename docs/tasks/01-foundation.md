@@ -5,6 +5,17 @@ into typed domain models through a port + adapter. No matching logic yet.
 
 **Type:** Task (technical) · **Priority:** P0 · **Depends on:** none
 
+> **Parallelization (superseded — kept for detail).** This slice has been **split** to give the
+> team a green baseline before any domain content, and to make the models/ports a frozen fan-out
+> boundary. Execute it as three units, not one:
+> - **Project config / tooling / package skeleton / `.env.example` / CI** → **S0**
+>   ([`00a-ci-baseline.md`](00a-ci-baseline.md)).
+> - **Domain models + `SupplyDemandSource` port** → **C1** ([`00b-contracts.md`](00b-contracts.md)),
+>   where they are frozen with all optional fields pre-baked.
+> - **xlsx adapter + its tests** → **Track B**, wired into the matcher by **I1** (see
+>   [`02-beach-matching.md`](02-beach-matching.md) and [`parallelization-guide.md`](parallelization-guide.md)).
+> The tasks below remain the authoritative spec for *what* to build in each unit.
+
 ## Acceptance criteria
 
 - [ ] `make install` provisions the venv; `make test`, `make lint`, `make format` run.

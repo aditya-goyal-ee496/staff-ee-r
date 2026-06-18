@@ -3,7 +3,12 @@
 **Goal:** order the eligible shortlist by required-skill fit and explain skill gaps and
 adjacent-skill substitutions — all deterministic, before any LLM is involved.
 
-**Type:** Feature · **Priority:** P0 · **Depends on:** 02
+**Type:** Feature · **Priority:** P0 · **Depends on:** C1 ([`00b-contracts.md`](00b-contracts.md))
+
+> **Parallelization.** Scoring/ranking/explain are pure functions over `(role, consultant)` —
+> **Track A**, mergeable after C1 independently of beach matching (02). Each lands as a named
+> `ScoreContribution`; nobody edits a shared formula. CLI wiring is integration slice **I2**
+> (depends on I1 + this track work). See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Acceptance criteria
 

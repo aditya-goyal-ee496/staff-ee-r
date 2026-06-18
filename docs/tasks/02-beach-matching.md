@@ -4,7 +4,12 @@
 consultants who clear the **hard constraints** (location, start date), each with a reason, and
 explains exclusions.
 
-**Type:** Feature · **Priority:** P0 · **Depends on:** 01
+**Type:** Feature · **Priority:** P0 · **Depends on:** C1 ([`00b-contracts.md`](00b-contracts.md))
+
+> **Parallelization.** The constraint logic (`matching.py`, value objects) is **Track A** —
+> mergeable anytime after C1 behind null-object wiring. The CLI + xlsx wiring that makes this the
+> first shippable matcher is integration slice **I1** (depends on Track A matching + Track B xlsx).
+> See [`parallelization-guide.md`](parallelization-guide.md) for the per-PR Definition of Done.
 
 ## Acceptance criteria
 

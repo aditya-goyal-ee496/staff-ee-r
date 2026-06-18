@@ -3,7 +3,13 @@
 **Goal:** bring richer signal into the system — parse consultant profile PDFs and feedback
 markdown — and establish the PII-scrubbing boundary that all LLM-bound text must pass through.
 
-**Type:** Feature · **Priority:** P1 · **Depends on:** 02
+**Type:** Feature · **Priority:** P1 · **Depends on:** C1 ([`00b-contracts.md`](00b-contracts.md))
+
+> **Parallelization.** This needs only the C1 models + ports, not beach matching (02). The Docling
+> + markdown-feedback adapters are **Track B**; the Presidio scrubber is **Track C** — both open
+> after C1 and merge behind null-object defaults. The PII scrubber becomes the *required* default
+> on any LLM/semantic path (fail-closed in `build_matcher`); it is consumed by I3/I4.
+> See [`parallelization-guide.md`](parallelization-guide.md).
 
 ## Acceptance criteria
 
