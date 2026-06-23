@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Staffeer — Build Progress</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2230; --border: #2d333b;
+    --txt: #e6edf3; --muted: #9198a1; --accent: #4493f8;
+    --done: #3fb950; --wip: #d29922; --todo: #6e7681;
+    --done-bg: #133a1c; --wip-bg: #3a2f0c; --todo-bg: #21262d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--txt);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  header h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.02em; }
+  header p { margin: 0; color: var(--muted); }
+  .meta { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .meta code { background: var(--panel2); padding: 2px 6px; border-radius: 5px; color: var(--txt); }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 28px 0; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card .num { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+  .card .lbl { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .card .sub { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+  .bar { height: 12px; border-radius: 999px; background: var(--todo-bg); overflow: hidden; margin-top: 12px; border: 1px solid var(--border); }
+  .bar > span { display: block; height: 100%; background: linear-gradient(90deg, #2ea043, #3fb950); }
+
+  h2 { margin: 40px 0 6px; font-size: 19px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h2 .hint { font-size: 13px; font-weight: 400; color: var(--muted); }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 4px; font-size: 13px; color: var(--muted); }
+  .legend span::before { content: "●"; margin-right: 6px; }
+  .lg-done::before { color: var(--done); } .lg-wip::before { color: var(--wip); } .lg-todo::before { color: var(--todo); }
+
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+  .node { padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); white-space: nowrap; }
+  .node.done { background: var(--done-bg); color: #5fd97a; border-color: #2ea043; }
+  .node.wip { background: var(--wip-bg); color: #e3b341; border-color: #9e7700; }
+  .node.todo { background: var(--todo-bg); color: var(--muted); }
+  .arrow { color: var(--muted); font-size: 16px; }
+  .flow .ship { margin-left: auto; font-size: 13px; color: var(--done); font-weight: 600; }
+
+  .item { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; margin: 12px 0; overflow: hidden; }
+  .item > summary { list-style: none; cursor: pointer; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+  .item > summary::-webkit-details-marker { display: none; }
+  .item > summary:hover { background: var(--panel2); }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .b-done { background: var(--done-bg); color: #5fd97a; } .b-wip { background: var(--wip-bg); color: #e3b341; } .b-todo { background: var(--todo-bg); color: var(--muted); }
+  .item .title { font-weight: 600; }
+  .item .title small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .item .pct { margin-left: auto; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .tasks { padding: 4px 18px 16px 18px; border-top: 1px solid var(--border); }
+  .tasks ul { list-style: none; margin: 10px 0 0; padding: 0; }
+  .tasks li { padding: 5px 0 5px 26px; position: relative; color: var(--txt); font-size: 14px; }
+  .tasks li.t-done { color: var(--muted); }
+  .tasks li.t-done::before { content: "✓"; position: absolute; left: 4px; color: var(--done); font-weight: 700; }
+  .tasks li.t-wip::before  { content: "◐"; position: absolute; left: 4px; color: var(--wip); }
+  .tasks li.t-todo::before { content: "○"; position: absolute; left: 4px; color: var(--todo); }
+  .tasks li code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Staffeer — Build Progress</h1>
+    <p>Demand-supply matcher · roadmap status against <code>docs/tasks/</code></p>
+    <div class="meta">
+      Snapshot: <strong>2026-06-23</strong> · Branch: <code>feat/track-a-matching</code> ·
+      Structure: <code>parallelization-guide.md</code> (bootstrap → contracts → tracks → integration)
+    </div>
+  </header>
+
+  <!-- ── Summary cards ───────────────────────────────────────── -->
+  <section class="cards">
+    <div class="card">
+      <div class="num">~35%</div>
+      <div class="lbl">Roadmap tasks complete</div>
+      <div class="bar"><span style="width:35%"></span></div>
+      <div class="sub">38 of 108 tracked task items</div>
+    </div>
+    <div class="card">
+      <div class="num">1<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
+      <div class="lbl">Integration slices shipped</div>
+      <div class="sub">I1 beach matcher live; I2 in progress</div>
+    </div>
+    <div class="card">
+      <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
+      <div class="lbl">Serial prerequisites done</div>
+      <div class="sub">S0 ✓ · C1 ✓ · C2 pending</div>
+    </div>
+    <div class="card">
+      <div class="num">✅</div>
+      <div class="lbl">Critical path to first ship</div>
+      <div class="sub">S0 → C1 → (Track A ‖ xlsx) → I1 complete</div>
+    </div>
+  </section>
+
+  <!-- ── Critical path ───────────────────────────────────────── -->
+  <h2>Critical path <span class="hint">— shortest route to a shippable beach matcher</span></h2>
+  <div class="flow">
+    <span class="node done">S0 CI baseline</span><span class="arrow">→</span>
+    <span class="node done">C1 Contracts</span><span class="arrow">→</span>
+    <span class="node done">Track A domain</span><span class="arrow">‖</span>
+    <span class="node done">xlsx adapter</span><span class="arrow">→</span>
+    <span class="node done">I1 Beach e2e</span>
+    <span class="ship">✓ shipped</span>
+  </div>
+
+  <div class="legend">
+    <span class="lg-done">Done</span>
+    <span class="lg-wip">In progress / partial</span>
+    <span class="lg-todo">Not started</span>
+    <span style="margin-left:auto">Click any row to expand its task checklist.</span>
+  </div>
+
+  <!-- ── Phase 1: serial prerequisites ───────────────────────── -->
+  <h2>Phase 1 · Serial prerequisites <span class="hint">— must land before the fan-out</span></h2>
+
+  <details class="item" open>
+    <summary>
+      <span class="badge b-done">Done</span>
+      <span class="title">S0 — CI baseline <small>00a-ci-baseline.md · green scaffold + fast-lane CI</small></span>
+      <span class="pct">10 / 10</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done"><code>pyproject.toml</code> (uv/hatchling), <code>.mise.toml</code>, <code>.python-version</code>, dep groups</li>
+      <li class="t-done">Tooling: ruff (line 100; E,F,I,UP,B,SIM), mypy strict, pytest src-layout</li>
+      <li class="t-done">Package skeleton <code>src/staffeer/</code> + env-driven <code>config.py</code></li>
+      <li class="t-done"><code>.env.example</code>; trivial passing test</li>
+      <li class="t-done">CI fast lane <code>.github/workflows/ci.yml</code> (make lint + test)</li>
+      <li class="t-done">Bonus: <code>setup.sh</code> one-command bootstrap (uv + mise + Python 3.12 + CLI install)</li>
+    </ul></div>
+  </details>
+
+  <details class="item" open>
+    <summary>
+      <span class="badge b-done">Done</span>
+      <span class="title">C1 — Contracts wave 1 <small>00b-contracts.md · the parallelism keystone</small></span>
+      <span class="pct">9 / 9</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done">Frozen domain models / value objects (<code>domain/models.py</code>), no I/O</li>
+      <li class="t-done">Ports: <code>SupplyDemandSource</code>, <code>ProfileParser</code>, <code>FeedbackStore</code>, <code>PIIScrubber</code></li>
+      <li class="t-done">Null-object adapters for every port + in-memory supply source</li>
+      <li class="t-done">Composition root <code>build_matcher() → Matcher.match() → Shortlist</code></li>
+      <li class="t-done">Contract-test suite per port (<code>tests/contract/</code>)</li>
+      <li class="t-done">Dependency-rule test (domain imports no I/O)</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">C2 — Contracts wave 2 <small>00b-contracts.md · domain-informed ports (small, deferred)</small></span>
+      <span class="pct">0 / 5</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo"><code>SemanticIndex</code> port (<code>upsert</code>, <code>query(text,k)→[Hit]</code>) + <code>NullSemanticIndex</code></li>
+      <li class="t-todo"><code>LLMReasoner</code> port (<code>assess(...)→SoftAssessment</code>) + <code>NullLLMReasoner</code> (abstains)</li>
+      <li class="t-todo">Contract suites for both ports</li>
+      <li class="t-todo">Unblocks Tracks D &amp; E</li>
+    </ul></div>
+  </details>
+
+  <!-- ── Phase 2: parallel tracks ────────────────────────────── -->
+  <h2>Phase 2 · Parallel tracks <span class="hint">— open after C1 (D/E after C2)</span></h2>
+
+  <details class="item" open>
+    <summary>
+      <span class="badge b-done">Done</span>
+      <span class="title">Track A — Domain core <small>slices 02 + 03 logic · pure, deterministic</small></span>
+      <span class="pct">core complete</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done">Hard-constraint eligibility — location (incl. Chennai-open) + availability (<code>domain/eligibility.py</code>)</li>
+      <li class="t-done">Skill normalization + adjacency map (<code>domain/skills.py</code>)</li>
+      <li class="t-done">Deterministic skill-coverage scorer (<code>domain/scoring.py</code>)</li>
+      <li class="t-done">Contribution-sum ranking (<code>domain/ranking.py</code>)</li>
+      <li class="t-done">Explanation factors — matched / missing / adjacent (<code>domain/explain.py</code>)</li>
+      <li class="t-done">Unit suites for each (eligibility, skills, scoring, ranking, explain)</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-wip">Partial</span>
+      <span class="title">Track B — Data adapters <small>slices 01 + 04 · behind ports</small></span>
+      <span class="pct">1 / 3 adapters</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done">xlsx supply/demand loader (<code>adapters/xlsx_supply_demand.py</code>) + integration test</li>
+      <li class="t-todo">Docling profile parser (<code>adapters/docling_profiles.py</code>)</li>
+      <li class="t-todo">Markdown feedback store (<code>adapters/markdown_feedback.py</code>)</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">Track C — Security / PII <small>slice 04 · Presidio + spaCy</small></span>
+      <span class="pct">0 / 1</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">Presidio PII scrubber (<code>adapters/presidio_pii.py</code>) + security negative test</li>
+      <li class="t-todo">Fail-closed wiring: LLM/semantic path requires a real scrubber</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">Track D — Semantic adapter <small>slice 05 · Milvus Lite (needs C2)</small></span>
+      <span class="pct">0 / 1</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">Milvus Lite index adapter (<code>adapters/milvus_index.py</code>) + round-trip test</li>
+      <li class="t-todo">Embedding-model choice + ADR</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">Track E — LLM reasoner <small>slice 06 · DSPy / OpenRouter (needs C2)</small></span>
+      <span class="pct">0 / 1</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">DSPy/OpenRouter adapter (<code>adapters/dspy_openrouter.py</code>), stubbed in tests</li>
+      <li class="t-todo">Free-text role parsing; soft-score contributor; abstention</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-wip">Partial</span>
+      <span class="title">Track F — Eval scaffolding <small>slices 02 + 07 · two eval tiers</small></span>
+      <span class="pct">harness done</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done">Deterministic golden-table harness (<code>evals/test_constraint_scenarios.py</code>, <code>evals/README.md</code>)</li>
+      <li class="t-done"><code>make eval</code> → <code>uv run pytest evals</code></li>
+      <li class="t-todo">Promptfoo + DeepEval relevance skeleton (LLM-as-judge)</li>
+      <li class="t-todo">Heavy-lane CI workflow (<code>integration.yml</code>, scheduled / label-gated)</li>
+    </ul></div>
+  </details>
+
+  <!-- ── Phase 3: integration slices ─────────────────────────── -->
+  <h2>Phase 3 · Integration slices <span class="hint">— thin wiring PRs that ship user value</span></h2>
+
+  <details class="item" open>
+    <summary>
+      <span class="badge b-done">Done</span>
+      <span class="title">I1 — Beach matching e2e <small>slice 02 · first shippable matcher</small></span>
+      <span class="pct">13 / 13</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done"><code>staffeer match ROLE_ID</code> prints eligible beach consultants with reasons</li>
+      <li class="t-done">Location + start-date hard constraints wired through <code>build_matcher</code></li>
+      <li class="t-done"><code>--show-excluded</code> lists exclusions with reasons (no silent drops)</li>
+      <li class="t-done"><code>roles</code> command; clear errors + non-zero exit on bad role/data</li>
+      <li class="t-done">Constraint scenario golden table (deterministic, 100% green)</li>
+    </ul></div>
+  </details>
+
+  <details class="item" open>
+    <summary>
+      <span class="badge b-wip">In progress</span>
+      <span class="title">I2 — Skill scoring in CLI <small>slice 03 · ranked, explained shortlist</small></span>
+      <span class="pct">6 / 12</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-done">Scorer / ranker / explainer wired into the matcher pipeline</li>
+      <li class="t-done">CLI shows per-consultant <code>score</code> + explanation factors</li>
+      <li class="t-todo">Explicit matched / missing / adjacent skill display per consultant</li>
+      <li class="t-todo">Accept the 0..1 coverage + ranked-output acceptance criteria formally</li>
+      <li class="t-todo">Extend golden table with skill-ranking expectations</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">I3 — Semantic blend <small>slice 05 · Null→Milvus, <code>--semantic</code></small></span>
+      <span class="pct">0 / 10</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">Swap <code>NullSemanticIndex</code>→Milvus; add semantic <code>ScoreContribution</code></li>
+      <li class="t-todo"><code>make index</code> (reproducible, idempotent); <code>--semantic</code> flag</li>
+      <li class="t-todo">Blocked on: C2 + Track C (scrubbed embeddings) + Track D</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">I4 — LLM soft scoring + free-text role <small>slice 06</small></span>
+      <span class="pct">0 / 13</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">Swap <code>NullLLMReasoner</code>→DSPy; soft-score contributor + rationale citations</li>
+      <li class="t-todo">Free-text role queries; PII-scrubbed LLM input; call logging; abstention</li>
+      <li class="t-todo">Blocked on: C2 + Track C + Track E (order-free with I3)</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">I5 — Supply expansion <small>slice 08 · roll-offs &amp; new joiners</small></span>
+      <span class="pct">0 / 10</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo"><code>--include rolling_off,new_joiner</code>; availability by true free date + buffer</li>
+      <li class="t-todo">Roll-off confidence surfaced; unverified new-joiner skills weighted + flagged</li>
+      <li class="t-todo">Model fields already pre-baked in C1 → no breaking change needed</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">I6 — Relevance evals <small>slice 07 · heavy lane, LLM-as-judge</small></span>
+      <span class="pct">0 / 10</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">Promptfoo scenarios + DeepEval relevance/faithfulness metrics</li>
+      <li class="t-todo">Negative scenarios mandatory; 100% relevance = coverage warning</li>
+      <li class="t-todo">Blocked on: I4 + Track F</li>
+    </ul></div>
+  </details>
+
+  <details class="item">
+    <summary>
+      <span class="badge b-todo">Not started</span>
+      <span class="title">I7 — Optional enhancements <small>slice 09 · stretch goals</small></span>
+      <span class="pct">0 / 5</span>
+    </summary>
+    <div class="tasks"><ul>
+      <li class="t-todo">Multi-role / team formation; batch file input</li>
+      <li class="t-todo">Web interface; DB persistence adapter; observability</li>
+    </ul></div>
+  </details>
+
+  <!-- ── Next up ─────────────────────────────────────────────── -->
+  <h2>Up next <span class="hint">— recommended order</span></h2>
+  <div class="item"><div class="tasks" style="border:none"><ul>
+    <li class="t-wip">Finish <strong>I2</strong> — surface matched/missing/adjacent skills in the CLI and extend the skill-ranking golden table (closes slice 03).</li>
+    <li class="t-todo">Land <strong>C2</strong> — freeze <code>SemanticIndex</code> + <code>LLMReasoner</code> ports; unblocks Tracks D &amp; E.</li>
+    <li class="t-todo">Run <strong>Track B</strong> (Docling + markdown feedback) and <strong>Track C</strong> (Presidio PII) in parallel — both only need C1.</li>
+    <li class="t-todo">Then integration: <strong>I3</strong> (semantic) ‖ <strong>I4</strong> (LLM), followed by <strong>I5</strong> / <strong>I6</strong>.</li>
+  </ul></div></div>
+
+  <footer>
+    Point-in-time snapshot generated from the checklists in <code>docs/tasks/</code> and the source tree on
+    <code>feat/track-a-matching</code>. Percentages count tracked <code>- [ ]</code> / <code>- [x]</code> items
+    (slice <code>01-foundation.md</code> is superseded by S0 + C1 + Track B and excluded from the totals).
+    Re-generate after merging new slices to keep it current.
+  </footer>
+</div>
+</body>
+</html>
