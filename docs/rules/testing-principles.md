@@ -25,6 +25,7 @@ Practical guidelines for writing tests that provide confidence, enable refactori
 - *RULE-003:* Use descriptive test names that state the scenario and expected outcome (e.g., `returns_404_when_user_not_found`)
 - *RULE-004:* Follow Arrange-Act-Assert (or Given-When-Then) structure; keep each section visually distinct
 - *RULE-005:* Tests must pass consistently; flaky tests must be fixed or deleted immediately
+- *RULE-006:* Assert on **observable behaviour** — returned domain values, surfaced reasons, and outcomes a caller depends on — never on internal implementation details or that a particular collaborator was called. A behaviour-preserving refactor must not break a test. Drive tests through public domain functions and ports, not private helpers.
 
 ### Should Have (Important)
 
@@ -123,6 +124,7 @@ it('test1', () => {
 - Must use descriptive names stating scenario and expected outcome (RULE-003)
 - Must follow Arrange-Act-Assert structure (RULE-004)
 - Must fix or delete flaky tests immediately (RULE-005)
+- Must assert observable behaviour, not implementation details (RULE-006)
 
 *Quick Decision Guide:*
 When in doubt: If a test breaks when you refactor without changing behaviour, it is testing implementation. If a test is hard to write, the code has a design problem.

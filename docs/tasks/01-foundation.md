@@ -19,9 +19,9 @@ into typed domain models through a port + adapter. No matching logic yet.
 ## Acceptance criteria
 
 - [ ] `make install` provisions the venv; `make test`, `make lint`, `make format` run.
-- [ ] `XlsxSupplyDemandSource` loads Open Roles + all three supply tabs into `Role`/`Consultant`.
+- [x] `XlsxSupplyDemandSource` loads Open Roles + all three supply tabs into `Role`/`Consultant`.
 - [ ] Domain models are pure Pydantic with no I/O imports (dependency rule holds).
-- [ ] Integration test loads the real workbook (skipped when data absent).
+- [x] Integration test loads the real workbook (skipped when data absent).
 
 ## Tasks
 
@@ -39,12 +39,16 @@ into typed domain models through a port + adapter. No matching logic yet.
       from the brief (`docs/rules/domain-driven-design.md`).
 - [ ] **Port** (`ports/supply_demand.py`) — `SupplyDemandSource` Protocol: `open_roles()`,
       `role(id)`, `consultants(*states)`.
-- [ ] **xlsx adapter** (`adapters/xlsx_supply_demand.py`) — parse title row for `as of` date,
-      header row, skip empty padding. Normalize all four tabs. Raise `SupplyDemandError` on
-      malformed dates/priority (fail loudly, no silent drops). Beach `available_from` = as-of date.
+- [x] **xlsx adapter** (`adapters/xlsx_supply_demand.py`) — parses the `as of` title date, header
+      row, skips empty padding; normalizes all four tabs (incl. per-consultant Chennai-open and
+      role co-location → `chennai_open`). Raises `SupplyDemandError` on malformed
+      date/priority/confidence (fail loudly). Beach `available_from` = as-of; new joiners
+      `skills_verified=False`; rolling-off confidence text → weight.
 - [ ] **`.env.example`** — `OPENROUTER_API_KEY=`, commented `STAFFEER_DATA`.
-- [ ] **Tests** — unit: model validation + adapter parsing against a tiny in-repo fixture xlsx;
-      integration: load real workbook, `skipif` data absent. Cover a malformed-row negative case.
+- [x] **Tests** — adapter parsing against a fixture workbook (`tests/conftest.py::workbook_factory`)
+      + the shared `SupplyDemandSource` contract suite now parametrised over the xlsx adapter
+      (`tests/contract/`); integration loads the real workbook (`skipif` absent). Malformed
+      date/priority negative cases covered.
 - [ ] **CI** — GitHub Actions running `make lint` + `make test` on PRs (`docs/rules/git-rules.md`).
 
 ## Notes

@@ -19,19 +19,21 @@ adjacent-skill substitutions — all deterministic, before any LLM is involved.
 
 ## Tasks
 
-- [ ] **Skill normalization** (`domain/skills.py`) — case/space normalization, alias map
-      (e.g. `k8s`→`kubernetes`), parse role required-skills (split `;`, strip `(expert)` qualifiers).
-- [ ] **Adjacency map** — data-driven `{skill: [acceptable_alternatives]}`; seed from the brief
-      (Kotlin↔Java, etc.). Document how to extend it.
-- [ ] **Scorer** (`domain/scoring.py`) — coverage score = exact matches + weighted adjacency;
-      pure function over `(role, consultant)` returning a `SkillScore` value object with detail.
-- [ ] **Ranker** (`domain/ranking.py`) — order eligible results by score; deterministic tie-break
-      (priority weighting → name). Configurable weights object (no hard-coding).
-- [ ] **Explainer** (`domain/explain.py`) — assemble `Explanation` listing matched/missing/adjacent
-      skills and the gap summary; this is the contract later slices enrich.
+- [x] **Skill normalization** (`domain/skills.py`) — `canonical_skill` (case/space, strip
+      `(expert)` qualifiers) + alias map (e.g. `k8s`→`kubernetes`); `canonical_skills` de-dups.
+- [x] **Adjacency map** — data-driven `DEFAULT_ADJACENCY = {skill: (alternatives,)}`; seeded from
+      the brief (Kotlin↔Java, etc.) with extension documented in the module docstring.
+- [x] **Scorer** (`domain/scoring.py::skill_coverage`) — coverage = exact matches + weighted
+      adjacency; pure function over `(role, consultant)` returning a `SkillScore` with detail.
+- [x] **Ranker** (`domain/ranking.py`) — `skill_contribution` + `assemble_match` (score = sum of
+      weighted contributions) + `rank` (best-first, ties broken by consultant name then id).
+      Weight is passed in (no hard-coding); the `Matcher` supplies it from config at I2.
+- [x] **Explainer** (`domain/explain.py`) — `skill_factor` (matched/adjacent/missing tally + detail)
+      and `constraint_factors` (one factor per hard-constraint check); the open list later slices enrich.
 - [ ] **CLI** — extend `match` to show score + matched/missing/adjacent skills per consultant.
-- [ ] **Tests** — exact-match ranking, adjacency substitution scored lower, missing-skill gap text,
-      and a **partial-coverage** negative scenario (nobody fully matches).
+- [x] **Tests** — `tests/unit/test_skills.py`, `test_scoring.py`, `test_ranking.py`, `test_explain.py`:
+      exact/partial coverage, adjacency-scored-lower, missing-skill gap text, ranking order + tie-break,
+      and surfaced explanation factors. CLI/eval scenarios land at integration slice I2.
 - [ ] **Scenario evals** — extend golden table with skill-ranking expectations.
 
 ## Notes

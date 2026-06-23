@@ -133,6 +133,16 @@ These patterns help implement a rich domain model:
 * **Conceptual Contours** - Split classes according to conceptual "seams"
 * **Standalone Classes** - Minimize dependencies between domain classes
 
+### 4.3 Naming from the Ubiquitous Language (binding)
+
+* **RULE-001:** Modules, functions, and types in the domain core must be named for the
+  **business concept** they represent, using the ubiquitous language — never generic-technical
+  placeholders. For Staffeer the language is the brief's: *beach, roll-off, new joiner,
+  co-location, Chennai-open, eligibility, availability, shortlist, hard constraint*.
+* **RULE-002:** Prefer the domain noun over a generic verb. `eligibility.py` not `matching.py`;
+  `screen_consultants` not `filter_eligible`; `availability_constraint` not `check_start_date`.
+* A name is wrong if a staffing manager (the domain expert) would not recognise it as their term.
+
 ---
 
 ### TL;DR

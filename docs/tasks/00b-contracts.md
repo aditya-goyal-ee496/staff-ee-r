@@ -1,9 +1,11 @@
 # Slice C — Contracts (the parallelism keystone)
 
-**Goal:** freeze the **ports, domain models/value objects, null-object adapters, and the
-composition root** so that — in a ports-and-adapters system — every track can build adapters
-and domain logic *in parallel* against a stable surface without colliding in shared files.
-This is the second (and last) irreducible serial step; once it merges, the work fans out.
+**Goal:** freeze the **ports, domain models/value objects, null-object adapters, the
+composition root, and a contract-test suite per port** so that — in a ports-and-adapters system —
+every track can build adapters and domain logic *in parallel* against a stable surface without
+colliding in shared files. This is the second (and last) irreducible serial step; once it merges,
+the work fans out. These frozen contracts **are the specs** (`docs/rules/spec-driven-development.md`)
+that every track is reviewed against before implementation.
 
 **Type:** Task (technical) · **Priority:** P0 · **Depends on:** S0 ([`00a-ci-baseline.md`](00a-ci-baseline.md)) ·
 **Parallelization:** the fan-out boundary — Tracks A/B/C/F open the moment **C1** merges; D/E
@@ -19,31 +21,37 @@ open after **C2**. See [`parallelization-guide.md`](parallelization-guide.md).
 
 ### Acceptance criteria
 
-- [ ] Frozen Pydantic models import with **no I/O** (dependency rule holds).
-- [ ] Every port is a `Protocol` with a matching **null-object** adapter that satisfies it.
-- [ ] `build_matcher(config) -> Matcher` and `Matcher.match(role) -> Shortlist` exist and run
+- [x] Frozen Pydantic models import with **no I/O** (dependency rule holds).
+- [x] Every port is a `Protocol` with a matching **null-object** adapter that satisfies it.
+- [x] `build_matcher(config) -> Matcher` and `Matcher.match(role) -> Shortlist` exist and run
       end-to-end returning an empty/inert result (all ports default to their null object).
-- [ ] One test per null object proves the Protocol is satisfiable; `make test`/`lint` green.
+- [x] A **contract-test suite per port** in `tests/contract/`, parametrised over an
+      implementation; the null object passes it now and every real adapter (Tracks B–E) reuses it
+      unchanged (`docs/rules/spec-driven-development.md` RULE-002). `make test`/`lint` green.
 
 ### Tasks
 
-- [ ] **Models / value objects** (`domain/models.py`) — `SupplyState`, `Priority` enums;
+- [x] **Models / value objects** (`domain/models.py`) — `SupplyState`, `Priority` enums;
       `Consultant`, `Role` (frozen Pydantic). **Pre-bake all known optional fields with safe
       defaults now** so later additions are never breaking: `Consultant.available_from`,
       `confidence`, `skills_verified`, provenance. Plus `ConstraintCheck(name, passed, reason)`,
       `EligibilityResult(consultant, checks)`, `SkillScore`, **`ScoreContribution(source,
       value, weight, detail)`**, `Explanation` / **`ExplanationFactor`**, `Shortlist`. Skills
       as `list[str]`; dates as `date`. Ubiquitous language from the brief.
-- [ ] **Ports understood today** (`ports/`) — `SupplyDemandSource` (`open_roles()`,
+- [x] **Ports understood today** (`ports/`) — `SupplyDemandSource` (`open_roles()`,
       `role(id)`, `consultants(*states)`); `ProfileParser.parse(path) -> ParsedProfile`;
       `FeedbackStore.for_consultant(id) -> Feedback`; `PIIScrubber.scrub(text) -> ScrubbedText`.
-- [ ] **Null-object adapters** (`adapters/`) — `NullProfileParser`, `NullFeedbackStore`,
+- [x] **Null-object adapters** (`adapters/`) — `NullProfileParser`, `NullFeedbackStore`,
       `NullPIIScrubber`, plus an empty in-memory `SupplyDemandSource` for tests.
-- [ ] **Composition root** — `build_matcher(config) -> Matcher`, defaulting every port to its
+- [x] **Composition root** — `build_matcher(config) -> Matcher`, defaulting every port to its
       null object; `Matcher.match(role) -> Shortlist`. **Fail closed:** if an LLM/semantic
       path is later wired without a real `PIIScrubber`, `build_matcher` raises.
-- [ ] **Tests** — one satisfiability test per null object; one test that `build_matcher` with
-      all-null ports returns an empty `Shortlist` without error.
+- [x] **Contract suites** (`tests/contract/`) — one per port (`test_supply_demand.py`,
+      `test_profiles.py`, `test_feedback.py`, `test_pii.py`), parametrised over an implementation
+      fixture and asserting the spec's behaviour **including negative scenarios** (malformed input
+      → mapped `StaffeerError`, empty results). The null object is the first implementation to
+      pass each suite; real adapters reuse the same suite. Plus one test that `build_matcher`
+      with all-null ports returns an empty `Shortlist` without error.
 
 > If this PR exceeds the <30-min review rule, split it **models PR → ports/root PR** the same
 > day (still one serial step in practice).
@@ -56,6 +64,9 @@ informed by the real scoring core). Lands while Track A is mid-flight — serial
 ### Acceptance criteria
 
 - [ ] `SemanticIndex` and `LLMReasoner` ports frozen with null objects that compose inertly.
+- [ ] A contract-test suite per port (`tests/contract/test_semantic_index.py`,
+      `test_reasoner.py`) — the LLM suite runs against a no-network **stub** reasoner — passed by
+      the null object; Tracks D/E reuse it.
 - [ ] `make test`/`lint` green; Tracks D and E can now open.
 
 ### Tasks
@@ -77,7 +88,9 @@ informed by the real scoring core). Lands while Track A is mid-flight — serial
 
 ## Notes
 
-- This is *interfaces + dataclasses + no-op bodies* — designed to read fast and freeze cleanly.
+- This is *interfaces + dataclasses + no-op bodies + contract suites* — designed to read fast
+  and freeze cleanly. The contract suites are the **executable spec** each port is reviewed and
+  approved against before any track implements it (`docs/rules/spec-driven-development.md`).
 - Adding a defaulted optional field is the only non-breaking model change; design so that is
   the only kind ever needed downstream.
 - Definition of Done: see [`parallelization-guide.md`](parallelization-guide.md).

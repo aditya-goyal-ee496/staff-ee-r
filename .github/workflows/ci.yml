@@ -1,0 +1,24 @@
+name: CI
+
+# Fast lane: hermetic, core + dev deps only — no secrets, no network, no heavy models.
+# Gates merge (docs/rules/git-rules.md). The heavy lane (integration.yml) lands later.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install core + dev dependencies
+        run: uv sync
+      - name: Lint (ruff format-check + ruff check + mypy strict)
+        run: make lint
+      - name: Test (unit + integration)
+        run: make test

@@ -49,11 +49,43 @@ Presidio + spaCy · Milvus Lite · Promptfoo + DeepEval.
 make install                 # uv sync
 cp .env.example .env          # add OPENROUTER_API_KEY (needed only for the LLM slice)
 make test                     # unit + integration tests
-make match ROLE="ROLE-01"     # ranked shortlist for a role (beach-only slice)
+make eval                     # deterministic hard-constraint scenarios (must be 100% green)
 ```
 
 Raw data lives in `planning/raw-data/` (git-ignored): 50 profile PDFs, per-consultant
 feedback markdown, and `demand-supply.xlsx` (Beach / Rolling Off / New Joiners / Open Roles).
+
+## Running the matcher (beach-only slice)
+
+The CLI reads the workbook from `--data` or the `STAFFEER_DATA` environment variable. Point it
+at the real workbook once, then list roles and match against them:
+
+```bash
+export STAFFEER_DATA=planning/raw-data/demand-supply.xlsx
+
+uv run staffeer roles                       # list the open roles in the workbook
+uv run staffeer match ROLE-02               # ranked, explained beach shortlist for a role
+uv run staffeer match ROLE-02 --show-excluded   # also show who was excluded, and why
+
+# Or point at a workbook explicitly, without exporting the env var:
+uv run staffeer match ROLE-01 --data planning/raw-data/demand-supply.xlsx
+
+# The Makefile target wraps `staffeer match` (uses $STAFFEER_DATA):
+make match ROLE="ROLE-02"
+```
+
+Each consultant comes with the *why* — the rule behind every line is surfaced:
+
+```text
+Role ROLE-02: Platform / SRE Engineer — Chennai
+1. Karan Mehta (Lead Consultant, Bengaluru) — score 0.75
+     - location: Bengaluru satisfies Chennai co-located team (Chennai-based or Chennai-open)
+     - availability: available 2026-06-01 is by latest-acceptable 2026-06-22 (start 2026-06-15 + 7d buffer)
+     - skills: 3 exact, 0 adjacent, 1 missing of 4 required skills
+```
+
+Free-text roles ("backend engineer with database experience") arrive with the LLM slice; until
+then `match` takes a sheet role id (`staffeer roles` lists them).
 
 ## Development workflow
 

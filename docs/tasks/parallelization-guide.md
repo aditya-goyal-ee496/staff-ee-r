@@ -31,7 +31,7 @@ fans out. The shortest path to a *shippable beach matcher* is
 
 | Track | Scope (grouped into ~1–2 PRs) | Opens after | Maps to old slice |
 |---|---|---|---|
-| **A — Domain core** | `matching.py` (location + start-date), `skills.py` (normalize + adjacency), `scoring.py` (lexical contributor + contribution-sum), `ranking.py`, `explain.py`. Pure, no I/O. | C1 | 02, 03 |
+| **A — Domain core** | `eligibility.py` (location + availability), `skills.py` (normalize + adjacency), `scoring.py` (lexical contributor + contribution-sum), `ranking.py`, `explain.py`. Pure, no I/O. | C1 | 02, 03 |
 | **B — Data adapters** | `xlsx_supply_demand.py`, `docling_profiles.py`, `markdown_feedback.py` (one owner). | C1 | 01, 04 |
 | **C — Security/PII** | `presidio_pii.py` + security negative test. | C1 | 04 |
 | **D — Semantic adapter** | `milvus_index.py` round-trip + embedding choice (ADR). | C2 | 05 |
@@ -89,8 +89,12 @@ real-vs-null per port; CLI flags are thin overrides merged into config, not a pa
   touching prompts/weights/scoring/evals/adapters. **A relevance suite scoring 100% emits a
   coverage-review warning — never a pass** (ADR-001).
 
-## TDD + eval-first (how every task is built)
+## Spec-driven + TDD + eval-first (how every task is built)
 
+- **Spec-first** (`docs/rules/spec-driven-development.md`). The port contract (frozen in C1/C2)
+  is the **spec**, reviewed and approved *before* implementation; the `tests/contract/` suite is
+  that spec made executable. A track implements only what makes its frozen contract suite pass —
+  it never reshapes a frozen contract (amend the spec + re-approve instead, RULE-004).
 - **Eval-first** (ADR-001: "the eval harness is the primary consumer"). Because C1 gives us
   `build_matcher` + models + null objects, tests and the eval harness target the **real
   decision core before any adapter is real**. Each integration slice (I1–I5) **writes its
@@ -110,9 +114,10 @@ Extends the build-plan DoD; each task file references this list.
       descriptive scenario names (RULE-003); no flaky tests (RULE-005).
 - [ ] **Negative scenario present** (mandatory): no-viable-match, location-blocked,
       malformed-row, unverified-skill, or PII-leak attempt — whichever applies (RULE-104).
-- [ ] **Right pyramid layer:** domain → `tests/unit/` (no mocks); adapter →
-      `tests/integration/` against a small real/fixture sample; scenario → `evals/` golden
-      table (RULE-101/102).
+- [ ] **Right pyramid layer:** domain → `tests/unit/` (no mocks); port → `tests/contract/`
+      suite (every adapter, real or null, passes it — `spec-driven-development.md` RULE-002);
+      adapter → `tests/integration/` against a small real/fixture sample; scenario → `evals/`
+      golden table (RULE-101/102).
 - [ ] **Eval acceptance:** integration slices add/extend the deterministic golden table
       *first*; hard-constraint evals 100% green; PRs touching prompts/weights/scoring run
       `make eval` (heavy lane) and attach results.
