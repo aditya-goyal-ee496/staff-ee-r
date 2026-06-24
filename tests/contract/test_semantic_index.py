@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import pytest
 
+from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.ports.semantic_index import (
     IndexItem,
-    NullSemanticIndex,
     SemanticIndex,
 )
 

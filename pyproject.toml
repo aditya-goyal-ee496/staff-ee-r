@@ -61,6 +61,17 @@ module = ["presidio_analyzer.*", "presidio_anonymizer.*", "docling.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
+# structlog ships no py.typed marker in all environments; treat as Any at the boundary.
+[[tool.mypy.overrides]]
+module = ["structlog.*"]
+ignore_missing_imports = true
+
+# dspy ships no py.typed marker; treat as Any at the adapter boundary.
+[[tool.mypy.overrides]]
+module = ["dspy.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

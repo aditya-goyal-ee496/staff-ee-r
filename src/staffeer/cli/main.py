@@ -2,21 +2,21 @@
 
 Two commands: `roles` lists the open roles in the workbook, and `match ROLE_ID` prints the
 ranked, explained beach shortlist for one role (with `--show-excluded` to see why others were
-dropped). The CLI only presents; all wiring goes through `build_matcher`, never adapters
-directly (`docs/tasks/parallelization-guide.md`). Free-text roles arrive with the LLM slice (06);
-until then `match` takes a sheet role id.
+dropped). The CLI only presents; all wiring goes through `build_matcher` and `build_role_parser`,
+never adapters directly (`docs/tasks/parallelization-guide.md`).
 """
 
 from __future__ import annotations
 
 import typer
 
-from staffeer.composition import build_matcher
+from staffeer.composition import build_matcher, build_role_parser
 from staffeer.config import StaffeerConfig
 from staffeer.domain.errors import SupplyDemandError
 from staffeer.domain.explain import SKILLS_SOURCE
 from staffeer.domain.matcher import Matcher
-from staffeer.domain.models import EligibilityResult, Match
+from staffeer.domain.models import EligibilityResult, Match, Shortlist
+from staffeer.ports.reasoner import LLMReasonerError
 
 app = typer.Typer(
     no_args_is_help=True, help="Staffeer — ranked, explainable consultant shortlists."
@@ -59,6 +59,39 @@ def match(
         raise typer.Exit(code=1) from exc
     shortlist = matcher.match(role)
     typer.echo(f"Role {role.id}: {role.title} — {role.location}")
+    _print_shortlist(shortlist, show_excluded)
+
+
+@app.command()
+def match_text(
+    query: str,
+    data: str | None = _DATA_OPTION,
+    show_excluded: bool = typer.Option(
+        False, "--show-excluded", help="Also list excluded consultants and why."
+    ),
+) -> None:
+    """Match a free-text role description against the beach."""
+    config = StaffeerConfig.from_env()
+    if data:
+        config = config.model_copy(update={"data_path": data})
+    if not config.openrouter_api_key:
+        typer.echo("error: OPENROUTER_API_KEY is required for free-text matching.", err=True)
+        raise typer.Exit(code=1)
+    llm_config = config.model_copy(update={"llm_enabled": True})
+    role_parser = build_role_parser(llm_config)
+    matcher = build_matcher(llm_config)
+    try:
+        role = role_parser.parse(query)
+    except (ValueError, LLMReasonerError) as exc:
+        typer.echo(f"error: could not parse role description — {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    shortlist = matcher.match(role)
+    typer.echo(f"Role (free-text): {role.title} — {role.location}")
+    _print_shortlist(shortlist, show_excluded)
+
+
+def _print_shortlist(shortlist: Shortlist, show_excluded: bool) -> None:
+    """Print the ranked shortlist and, when requested, the excluded consultants."""
     if not shortlist.matches:
         typer.echo("No eligible consultants on the beach.")
     for position, candidate in enumerate(shortlist.matches, start=1):

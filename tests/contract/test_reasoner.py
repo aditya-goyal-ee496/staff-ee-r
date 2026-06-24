@@ -12,10 +12,10 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
 from staffeer.ports.reasoner import (
     Evidence,
     LLMReasoner,
-    NullLLMReasoner,
     SoftAssessment,
 )
 

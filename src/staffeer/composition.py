@@ -10,12 +10,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
+try:
+    import structlog
+
+    _log = structlog.get_logger(__name__)
+except ImportError:  # pragma: no cover
+    import logging
+
+    _log = logging.getLogger(__name__)
+
 from staffeer.adapters.docling_profiles import DoclingProfileParser
+from staffeer.adapters.dspy_role_parser import DspyRoleParser
 from staffeer.adapters.markdown_feedback import MarkdownFeedbackStore
 from staffeer.adapters.memory_supply_demand import InMemorySupplyDemandSource
 from staffeer.adapters.null_feedback import NullFeedbackStore
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
 from staffeer.adapters.null_pii import NullPIIScrubber
 from staffeer.adapters.null_profiles import NullProfileParser
+from staffeer.adapters.null_role_parser import NullRoleParser
+from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.adapters.presidio_pii import PresidioPIIScrubber
 from staffeer.adapters.xlsx_supply_demand import XlsxSupplyDemandSource
 from staffeer.config import StaffeerConfig
@@ -24,8 +37,9 @@ from staffeer.domain.matcher import Matcher
 from staffeer.ports.feedback import FeedbackStore
 from staffeer.ports.pii import PIIScrubber
 from staffeer.ports.profiles import ProfileParser
-from staffeer.ports.reasoner import LLMReasoner, NullLLMReasoner
-from staffeer.ports.semantic_index import NullSemanticIndex, SemanticIndex
+from staffeer.ports.reasoner import LLMReasoner
+from staffeer.ports.role_parser import RoleParser
+from staffeer.ports.semantic_index import SemanticIndex
 from staffeer.ports.supply_demand import SupplyDemandSource
 
 
@@ -86,6 +100,31 @@ def _build_semantic_index(config: StaffeerConfig) -> SemanticIndex:
     return NullSemanticIndex()
 
 
+def build_role_parser(config: StaffeerConfig) -> RoleParser:
+    """Return a `RoleParser` wired from `config`.
+
+    Wires `DspyRoleParser` when `llm_enabled` is True and an API key is set;
+    otherwise returns `NullRoleParser` (which raises on `parse`, surfacing a clear
+    error to the caller).  The PII scrubber is always wired before reaching the LLM.
+    """
+    pii = _build_pii_scrubber(config)
+    if config.llm_enabled and config.openrouter_api_key:
+        return DspyRoleParser(api_key=config.openrouter_api_key, pii_scrubber=pii)
+    return NullRoleParser()
+
+
 def _build_reasoner(config: StaffeerConfig) -> LLMReasoner:
-    """Return the null reasoner; a real DSPy adapter slots in here later."""
+    """Wire the LLM reasoner: DspyOpenRouterReasoner when enabled + key set; else null.
+
+    When llm_enabled is True but no key is configured, falls back to NullLLMReasoner so
+    the composition succeeds and PII wiring can be verified.  DspyOpenRouterReasoner raises
+    ValueError at construction time when api_key is falsy — it does not defer the check.
+    """
+    if config.llm_enabled and config.openrouter_api_key:
+        # Lazy import: composition.py must remain import-clean without dspy.
+        from staffeer.adapters.dspy_openrouter import DspyOpenRouterReasoner  # noqa: PLC0415
+
+        return DspyOpenRouterReasoner(api_key=config.openrouter_api_key)
+    if config.llm_enabled and not config.openrouter_api_key:
+        _log.warning("llm_enabled_but_no_key_fallback_to_null")
     return NullLLMReasoner()

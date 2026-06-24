@@ -39,15 +39,3 @@ class SemanticIndex(Protocol):
     def query(self, text: str, namespace: str, top_k: int) -> list[Hit]:
         """Return up to `top_k` nearest neighbours for `text`; empty list when index is empty."""
         ...
-
-
-class NullSemanticIndex:
-    """No-op semantic index (null object). Always returns empty results."""
-
-    def upsert(self, item: IndexItem) -> None:
-        """No-op."""
-        pass
-
-    def query(self, text: str, namespace: str, top_k: int) -> list[Hit]:
-        """Return empty list (no index to query)."""
-        return []
