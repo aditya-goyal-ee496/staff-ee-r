@@ -27,6 +27,8 @@ from staffeer.domain.scoring import skill_coverage
 from staffeer.ports.feedback import FeedbackStore
 from staffeer.ports.pii import PIIScrubber
 from staffeer.ports.profiles import ProfileParser
+from staffeer.ports.reasoner import LLMReasoner, NullLLMReasoner
+from staffeer.ports.semantic_index import NullSemanticIndex, SemanticIndex
 from staffeer.ports.supply_demand import SupplyDemandSource
 
 
@@ -40,6 +42,8 @@ class Matcher:
     pii: PIIScrubber
     include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
     weights: Mapping[str, float] = field(default_factory=dict)
+    semantic_index: SemanticIndex = field(default_factory=NullSemanticIndex)
+    reasoner: LLMReasoner = field(default_factory=NullLLMReasoner)
 
     def match(self, role: Role) -> Shortlist:
         """Return the ranked, explained shortlist for `role`, with explained exclusions."""
