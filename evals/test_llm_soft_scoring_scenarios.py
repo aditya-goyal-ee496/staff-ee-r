@@ -46,11 +46,13 @@ import pytest
 
 from staffeer.adapters.memory_supply_demand import InMemorySupplyDemandSource
 from staffeer.adapters.null_feedback import NullFeedbackStore
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
 from staffeer.adapters.null_pii import NullPIIScrubber
 from staffeer.adapters.null_profiles import NullProfileParser
+from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.domain.matcher import Matcher
 from staffeer.domain.models import Consultant, Role, SupplyState
-from staffeer.ports.reasoner import Evidence, NullLLMReasoner, SoftAssessment
+from staffeer.ports.reasoner import Evidence, SoftAssessment
 
 # ---------------------------------------------------------------------------
 # Shared stub
@@ -91,6 +93,7 @@ def _matcher(consultant: Consultant, *, reasoner=None) -> Matcher:
         profiles=NullProfileParser(),
         feedback=NullFeedbackStore(),
         pii=NullPIIScrubber(),
+        semantic_index=NullSemanticIndex(),
         reasoner=reasoner,
     )
 
@@ -165,6 +168,7 @@ def test_ranked_shortlist_orders_higher_soft_scorer_first() -> None:
         profiles=NullProfileParser(),
         feedback=NullFeedbackStore(),
         pii=NullPIIScrubber(),
+        semantic_index=NullSemanticIndex(),
         reasoner=_BiasedReasoner(),
     )
     # Act

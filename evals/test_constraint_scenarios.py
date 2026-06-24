@@ -15,8 +15,10 @@ import pytest
 
 from staffeer.adapters.memory_supply_demand import InMemorySupplyDemandSource
 from staffeer.adapters.null_feedback import NullFeedbackStore
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
 from staffeer.adapters.null_pii import NullPIIScrubber
 from staffeer.adapters.null_profiles import NullProfileParser
+from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.domain.matcher import Matcher
 from staffeer.domain.models import Consultant, Role
 
@@ -154,6 +156,8 @@ def _matcher(consultants: Sequence[Consultant]) -> Matcher:
         profiles=NullProfileParser(),
         feedback=NullFeedbackStore(),
         pii=NullPIIScrubber(),
+        semantic_index=NullSemanticIndex(),
+        reasoner=NullLLMReasoner(),
     )
 
 
