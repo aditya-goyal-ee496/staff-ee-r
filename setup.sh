@@ -90,10 +90,15 @@ then
 fi
 
 # 5. Install the CLI on PATH so `staffeer` is runnable from anywhere.
+#    `uv tool install` builds an ISOLATED environment — it does NOT inherit the .venv
+#    above — so the llm + nlp extras and the spaCy model must be requested here too,
+#    or the global `staffeer match-text` fails with ModuleNotFoundError (presidio/dspy).
+#    The model wheel is pinned because the tool env can't run `spacy download` after install.
+SPACY_MODEL_WHL="https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 if [[ "${INSTALL_CLI}" -eq 1 ]]
 then
-  log "Installing the staffeer CLI on your PATH (uv tool install) ..."
-  uv tool install --force --editable .
+  log "Installing the staffeer CLI on your PATH (uv tool install, with llm+nlp extras) ..."
+  uv tool install --force --editable ".[llm,nlp]" --with "en_core_web_sm @ ${SPACY_MODEL_WHL}"
   uv tool update-shell 2>/dev/null || true
 fi
 
