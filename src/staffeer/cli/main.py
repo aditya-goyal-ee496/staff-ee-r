@@ -14,6 +14,7 @@ import typer
 from staffeer.composition import build_matcher
 from staffeer.config import StaffeerConfig
 from staffeer.domain.errors import SupplyDemandError
+from staffeer.domain.explain import SKILLS_SOURCE
 from staffeer.domain.matcher import Matcher
 from staffeer.domain.models import EligibilityResult, Match
 
@@ -68,6 +69,21 @@ def match(
             typer.echo(_format_excluded(result))
 
 
+def _skill_detail(match: Match) -> str:
+    """Return the detail string from the skills factor, or empty string when absent or blank.
+
+    Returns empty string in two distinct cases:
+    - No skills ExplanationFactor exists (role had no required skills or domain omitted it).
+    - A skills factor exists but its ``detail`` field is the empty string (e.g. default
+      ``SkillScore()``). Both cases suppress the ``skills:`` line in the output, which is
+      intentional: an empty detail string carries no information worth surfacing.
+    """
+    for factor in match.explanation.factors:
+        if factor.source == SKILLS_SOURCE and factor.detail:
+            return factor.detail
+    return ""
+
+
 def _format_match(position: int, match: Match) -> str:
     """A consultant's rank, identity, score, and the factors behind it."""
     consultant = match.consultant
@@ -78,7 +94,9 @@ def _format_match(position: int, match: Match) -> str:
     factors = "\n".join(
         f"     - {factor.source}: {factor.summary}" for factor in match.explanation.factors
     )
-    return f"{head}\n{factors}"
+    skill_detail = _skill_detail(match)
+    skill_block = f"\n     skills: {skill_detail}" if skill_detail else ""
+    return f"{head}\n{factors}{skill_block}"
 
 
 def _format_excluded(result: EligibilityResult) -> str:

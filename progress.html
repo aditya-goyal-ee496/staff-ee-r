@@ -80,15 +80,15 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~35%</div>
+      <div class="num">~41%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:35%"></span></div>
-      <div class="sub">38 of 108 tracked task items</div>
+      <div class="bar"><span style="width:41%"></span></div>
+      <div class="sub">44 of 108 tracked task items</div>
     </div>
     <div class="card">
-      <div class="num">1<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
+      <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
       <div class="lbl">Integration slices shipped</div>
-      <div class="sub">I1 beach matcher live; I2 in progress</div>
+      <div class="sub">I1 beach matcher live; I2 skill scoring complete</div>
     </div>
     <div class="card">
       <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
@@ -98,7 +98,7 @@
     <div class="card">
       <div class="num">✅</div>
       <div class="lbl">Critical path to first ship</div>
-      <div class="sub">S0 → C1 → (Track A ‖ xlsx) → I1 complete</div>
+      <div class="sub">S0 → C1 → (Track A ‖ xlsx) → I1 complete; I2 complete</div>
     </div>
   </section>
 
@@ -271,16 +271,16 @@
 
   <details class="item" open>
     <summary>
-      <span class="badge b-wip">In progress</span>
+      <span class="badge b-done">Done</span>
       <span class="title">I2 — Skill scoring in CLI <small>slice 03 · ranked, explained shortlist</small></span>
-      <span class="pct">6 / 12</span>
+      <span class="pct">12 / 12</span>
     </summary>
     <div class="tasks"><ul>
       <li class="t-done">Scorer / ranker / explainer wired into the matcher pipeline</li>
       <li class="t-done">CLI shows per-consultant <code>score</code> + explanation factors</li>
-      <li class="t-todo">Explicit matched / missing / adjacent skill display per consultant</li>
-      <li class="t-todo">Accept the 0..1 coverage + ranked-output acceptance criteria formally</li>
-      <li class="t-todo">Extend golden table with skill-ranking expectations</li>
+      <li class="t-done">Explicit matched / missing / adjacent skill display per consultant</li>
+      <li class="t-done">Accept the 0..1 coverage + ranked-output acceptance criteria formally</li>
+      <li class="t-done">Extend golden table with skill-ranking expectations</li>
     </ul></div>
   </details>
 
@@ -351,7 +351,7 @@
   <!-- ── Next up ─────────────────────────────────────────────── -->
   <h2>Up next <span class="hint">— recommended order</span></h2>
   <div class="item"><div class="tasks" style="border:none"><ul>
-    <li class="t-wip">Finish <strong>I2</strong> — surface matched/missing/adjacent skills in the CLI and extend the skill-ranking golden table (closes slice 03).</li>
+    <li class="t-done"><strong>I2</strong> — skill scoring, ranked output, and skill-ranking evals complete (slice 03 shipped).</li>
     <li class="t-todo">Land <strong>C2</strong> — freeze <code>SemanticIndex</code> + <code>LLMReasoner</code> ports; unblocks Tracks D &amp; E.</li>
     <li class="t-todo">Run <strong>Track B</strong> (Docling + markdown feedback) and <strong>Track C</strong> (Presidio PII) in parallel — both only need C1.</li>
     <li class="t-todo">Then integration: <strong>I3</strong> (semantic) ‖ <strong>I4</strong> (LLM), followed by <strong>I5</strong> / <strong>I6</strong>.</li>

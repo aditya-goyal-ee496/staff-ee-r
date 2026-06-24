@@ -109,6 +109,42 @@ _SCENARIOS = (
         ranked=["Asha"],
         excluded={"Late"},
     ),
+    # Skill-ranking scenario: full match > partial+adjacent > adjacent-only.
+    # java↔kotlin adjacency is verified from DEFAULT_ADJACENCY["kotlin"] == ("java",).
+    _Scenario(
+        name="skill_ranking_orders_by_coverage",
+        role=Role(
+            id="R-SKL",
+            title="Backend Engineer",
+            location="Remote-India",
+            required_skills=("python", "sql", "kotlin"),
+        ),
+        consultants=(
+            _beach("Deepa", "Chennai", ("python", "sql", "kotlin")),  # full match: score 1.0
+            _beach("Elan", "Pune", ("python", "java")),  # python exact + java→kotlin adjacent
+            _beach("Farhan", "Bengaluru", ("java",)),  # java→kotlin adjacent only
+        ),
+        ranked=["Deepa", "Elan", "Farhan"],
+        excluded=set(),
+    ),
+    # Negative scenario: no consultant covers the required skills; system still returns a ranked
+    # list with explicit gap explanations — never silently drops or fabricates a match.
+    _Scenario(
+        name="no_full_match_still_returns_ranked_list_with_gap_explanations",
+        role=Role(
+            id="R-GAP",
+            title="Systems Engineer",
+            location="Remote-India",
+            required_skills=("rust", "wasm"),
+        ),
+        consultants=(
+            _beach("Gita", "Chennai", ("python",)),  # no rust/wasm adjacency -> score 0.0
+            _beach("Hari", "Bengaluru", ("java",)),  # no rust/wasm adjacency -> score 0.0
+        ),
+        # Both score 0.0; name tie-break: G < H.
+        ranked=["Gita", "Hari"],
+        excluded=set(),
+    ),
 )
 
 
@@ -131,3 +167,41 @@ def test_ranked_shortlist_matches_the_golden_expectation(scenario: _Scenario) ->
 def test_exclusions_match_the_golden_expectation(scenario: _Scenario) -> None:
     shortlist = _matcher(scenario.consultants).match(scenario.role)
     assert {result.consultant.name for result in shortlist.excluded} == scenario.excluded
+
+
+_GAP_SCENARIO = next(
+    (
+        s
+        for s in _SCENARIOS
+        if s.name == "no_full_match_still_returns_ranked_list_with_gap_explanations"
+    ),
+    None,
+)
+_GAP_SCENARIO_NAME = "no_full_match_still_returns_ranked_list_with_gap_explanations"
+assert _GAP_SCENARIO is not None, f"Scenario {_GAP_SCENARIO_NAME!r} not found in _SCENARIOS"
+
+_GAP_NAMES = [c.name for c in _GAP_SCENARIO.consultants]
+
+
+def test_gap_scenario_ranked_list_is_non_empty() -> None:
+    """The gap scenario must produce a non-empty ranked list — no consultant is silently dropped."""
+    shortlist = _matcher(_GAP_SCENARIO.consultants).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
+    assert len(shortlist.matches) > 0
+
+
+@pytest.mark.parametrize("consultant_name", _GAP_NAMES)
+def test_gap_scenario_ranked_match_has_skills_factor(consultant_name: str) -> None:
+    """Each ranked match in the gap scenario must carry at least one skills explanation factor."""
+    shortlist = _matcher(_GAP_SCENARIO.consultants).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
+    match = next(m for m in shortlist.matches if m.consultant.name == consultant_name)
+    skill_factors = [f for f in match.explanation.factors if f.source == "skills"]
+    assert skill_factors, f"{consultant_name} has no skills factor"
+
+
+@pytest.mark.parametrize("consultant_name", _GAP_NAMES)
+def test_gap_scenario_ranked_match_skills_factor_has_detail(consultant_name: str) -> None:
+    """Each skills explanation factor in the gap scenario must carry non-empty detail text."""
+    shortlist = _matcher(_GAP_SCENARIO.consultants).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
+    match = next(m for m in shortlist.matches if m.consultant.name == consultant_name)
+    skill_factors = [f for f in match.explanation.factors if f.source == "skills"]
+    assert skill_factors[0].detail, f"{consultant_name} skills factor detail is empty"
