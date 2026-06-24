@@ -11,7 +11,7 @@ from __future__ import annotations
 import typer
 
 from staffeer.composition import build_matcher, build_role_parser
-from staffeer.config import StaffeerConfig
+from staffeer.config import StaffeerConfig, load_env_file
 from staffeer.domain.errors import SupplyDemandError
 from staffeer.domain.explain import SKILLS_SOURCE
 from staffeer.domain.matcher import Matcher
@@ -139,5 +139,6 @@ def _format_excluded(result: EligibilityResult) -> str:
 
 
 def main() -> None:
-    """Console-script entry point (`staffeer`)."""
+    """Console-script entry point (`staffeer`): load `.env`, then dispatch commands."""
+    load_env_file()
     app()
