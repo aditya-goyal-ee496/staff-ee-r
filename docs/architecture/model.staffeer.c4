@@ -60,8 +60,12 @@ model {
     core = container 'Domain Core' {
       #CORE
       technology 'Python, Pydantic'
-      description 'Pure, deterministic: filter, score, rank, explain. No I/O.'
+      description 'Pure, deterministic: filter, score, rank, explain, ingest. No I/O.'
 
+      ingestion = component 'Ingestion Service' {
+        #CORE
+        description 'Composes ProfileParser + FeedbackStore + PIIScrubber ports; makes PII-scrubbing structurally mandatory before profile/feedback text reaches any LLM or semantic index. Pure, no I/O.'
+      }
       filter = component 'Constraint Filter' {
         #CORE
         description 'Hard constraints: location (incl. Chennai-open) and start date.'
@@ -114,6 +118,7 @@ model {
   cli -> core 'invokes matching pipeline'
   evals -> core 'drives with curated datasets'
   core -> ports 'depends on (interfaces)'
+  ingestion -> ports 'scrubs PII + parses profiles/feedback via ports'
   adapters -> ports 'implements'
   pii -> ports 'implements PIIScrubber'
 

@@ -41,3 +41,15 @@ until this lands. Keep it tiny (one reviewer, <30 min). See
   every subsequent PR (contracts, tracks, integration) merges against a passing baseline.
 - Branch-protect `main`: require the fast lane to pass; heavy lane is informational here.
 - Definition of Done: see [`parallelization-guide.md`](parallelization-guide.md).
+
+## Follow-ups
+
+- [ ] **Heavy CI lane for optional extras** (raised by slice 04, [`04-ingestion-pii.md`](04-ingestion-pii.md)).
+      The fast lane installs core + dev only, so the `nlp` (Presidio + spaCy) and `parse`
+      (Docling) code paths are **never exercised in CI** — the PII security negative-case and
+      Docling adapter tests `skip` there and only run locally with the extras installed. Add an
+      `integration.yml` lane that `uv sync --extra nlp --extra parse`, downloads
+      `en_core_web_sm`, and runs `make test` so those tests run for real. Keep it off the
+      required-for-merge gate (informational/heavy) to preserve the fast lane's hermetic speed;
+      decide whether a nightly trigger suffices vs per-PR. Until then, verify PII scrubbing
+      locally (commands in the slice 04 PR description / project README).

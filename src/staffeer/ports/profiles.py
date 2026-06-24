@@ -14,12 +14,22 @@ from staffeer.domain.models import ValueObject
 
 
 class ParsedProfile(ValueObject):
-    """Structured output of parsing one profile document."""
+    """Structured output of parsing one profile document (Slice 04: skills verification).
+
+    Fields:
+        consultant_id: Unique identifier for the consultant.
+        text: Raw extracted text from the profile document.
+        skills: Tuple of skills explicitly mentioned in the document (never fabricated).
+        source: Profile source (beach, roll-off, new-joiner, etc.). None if unavailable.
+        skills_verified: Whether skills were extracted from a verified source document
+            (True for beach/roll-off; False for new-joiner profiles with unverified claims).
+    """
 
     consultant_id: str
     text: str = ""
     skills: tuple[str, ...] = ()
     source: str | None = None
+    skills_verified: bool = True
 
 
 @runtime_checkable

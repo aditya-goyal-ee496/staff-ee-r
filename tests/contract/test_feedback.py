@@ -32,3 +32,22 @@ def test_consultant_with_no_feedback_yields_empty_internal_notes(store: Feedback
 
 def test_returned_value_is_a_feedback(store: FeedbackStore) -> None:
     assert isinstance(store.for_consultant("C-01"), Feedback)
+
+
+# I4 — beach_notes contract tests (Slice 04)
+
+
+def test_beach_notes_defaults_empty() -> None:
+    # Arrange / Act
+    feedback = Feedback(consultant_id="C-01")
+    # Assert
+    assert feedback.beach_notes == ()
+
+
+def test_null_store_beach_notes_is_empty() -> None:
+    # Arrange
+    store = NullFeedbackStore()
+    # Act
+    result = store.for_consultant("C-01")
+    # Assert
+    assert result.beach_notes == ()

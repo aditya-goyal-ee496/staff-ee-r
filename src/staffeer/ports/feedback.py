@@ -13,11 +13,16 @@ from staffeer.domain.models import ValueObject
 
 
 class Feedback(ValueObject):
-    """Collected feedback for one consultant, separated by source."""
+    """Collected feedback for one consultant, separated by source.
+
+    Includes client feedback (one-dimensional), internal EE feedback (richer on fit/ability),
+    and beach trajectory notes capturing ongoing performance on the beach.
+    """
 
     consultant_id: str
     client_notes: tuple[str, ...] = ()
     internal_notes: tuple[str, ...] = ()
+    beach_notes: tuple[str, ...] = ()
 
 
 @runtime_checkable
