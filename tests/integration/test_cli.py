@@ -24,8 +24,34 @@ _REMOTE_ROLE = [
     "",
 ]
 _CHENNAI_ROLE = ["ROLE-2", "SRE", "", "", "python", "2026-07-01", "Chennai", "No", "High", ""]
+_SKILL_ROLE = [
+    "ROLE-3",
+    "Data Engineer",
+    "",
+    "",
+    "python, sql",
+    "2026-07-01",
+    "Remote-India",
+    "No",
+    "High",
+    "",
+]
 _ASHA = [1, "Asha Rao", "a@x.example", "Senior", "python, sql", "Chennai", "No", 5, ""]
 _PUNE = [2, "Imran Khan", "i@x.example", "Senior", "python", "Pune", "No", 9, ""]
+_PARTIAL_CONSULTANT = [3, "Priya Das", "p@x.example", "Mid", "python", "Chennai", "No", 3, ""]
+_ADJACENT_CONSULTANT = [4, "Ravi Kumar", "r@x.example", "Senior", "java", "Chennai", "No", 2, ""]
+_KOTLIN_ROLE = [
+    "ROLE-4",
+    "Kotlin Engineer",
+    "",
+    "",
+    "kotlin",
+    "2026-07-01",
+    "Remote-India",
+    "No",
+    "High",
+    "",
+]
 
 
 def test_roles_command_lists_an_open_role(workbook_factory: Callable[..., Path]) -> None:
@@ -54,3 +80,21 @@ def test_show_excluded_reports_a_location_blocked_consultant(
     path = workbook_factory(roles=[_CHENNAI_ROLE], beach=[_PUNE])
     result = runner.invoke(app, ["match", "ROLE-2", "--data", str(path), "--show-excluded"])
     assert "Imran Khan" in result.stdout
+
+
+def test_match_command_shows_skill_coverage_detail(workbook_factory: Callable[..., Path]) -> None:
+    """Skill block renders matched skills and gap text when a consultant has partial coverage."""
+    path = workbook_factory(roles=[_SKILL_ROLE], beach=[_PARTIAL_CONSULTANT])
+    result = runner.invoke(app, ["match", "ROLE-3", "--data", str(path)])
+    assert "matched" in result.stdout
+    assert "missing" in result.stdout
+    assert "adjacent" in result.stdout
+
+
+def test_match_command_shows_adjacent_skill_substitution(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """Skill summary shows a non-zero adjacent count when a consultant has an adjacent skill."""
+    path = workbook_factory(roles=[_KOTLIN_ROLE], beach=[_ADJACENT_CONSULTANT])
+    result = runner.invoke(app, ["match", "ROLE-4", "--data", str(path)])
+    assert "1 adjacent" in result.stdout

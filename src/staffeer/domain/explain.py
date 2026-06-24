@@ -10,11 +10,18 @@ from __future__ import annotations
 
 from staffeer.domain.models import EligibilityResult, ExplanationFactor, SkillScore
 
+SKILLS_SOURCE: str = "skills"
+"""Canonical source label for the skill-coverage ExplanationFactor.
+
+Use this constant wherever code compares or assigns ``ExplanationFactor.source`` for
+skills — a rename here propagates at compile time rather than silently diverging.
+"""
+
 
 def skill_factor(coverage: SkillScore) -> ExplanationFactor:
     """Explain skill coverage: how many required skills matched, substituted, or are missing."""
     return ExplanationFactor(
-        source="skills", summary=_coverage_summary(coverage), detail=coverage.detail
+        source=SKILLS_SOURCE, summary=_coverage_summary(coverage), detail=coverage.detail
     )
 
 
@@ -26,9 +33,9 @@ def constraint_factors(result: EligibilityResult) -> tuple[ExplanationFactor, ..
 
 
 def _coverage_summary(coverage: SkillScore) -> str:
-    """A one-line tally of exact, adjacent, and missing required skills."""
+    """A one-line tally of matched, adjacent, and missing required skills."""
     required = len(coverage.matched) + len(coverage.adjacent) + len(coverage.missing)
     return (
-        f"{len(coverage.matched)} exact, {len(coverage.adjacent)} adjacent, "
+        f"{len(coverage.matched)} matched, {len(coverage.adjacent)} adjacent, "
         f"{len(coverage.missing)} missing of {required} required skills"
     )

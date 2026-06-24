@@ -13,7 +13,7 @@ from staffeer.domain.models import (
 
 def test_skill_factor_summarises_the_coverage_tally() -> None:
     factor = skill_factor(SkillScore(value=0.5, matched=("python",), missing=("go",)))
-    assert factor.summary == "1 exact, 0 adjacent, 1 missing of 2 required skills"
+    assert factor.summary == "1 matched, 0 adjacent, 1 missing of 2 required skills"
 
 
 def test_skill_factor_carries_the_coverage_detail_for_audit() -> None:

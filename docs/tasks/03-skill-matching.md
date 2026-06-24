@@ -12,10 +12,10 @@ adjacent-skill substitutions — all deterministic, before any LLM is involved.
 
 ## Acceptance criteria
 
-- [ ] Eligible consultants are scored 0..1 on required-skill coverage and ranked.
-- [ ] Output lists matched skills, missing skills, and adjacency substitutions (e.g. Java→Kotlin).
-- [ ] A configurable adjacency map drives substitutions; substitutions are scored lower than exact.
-- [ ] Roles where no one fully matches still return a ranked list with explicit gap explanations.
+- [x] Eligible consultants are scored 0..1 on required-skill coverage and ranked.
+- [x] Output lists matched skills, missing skills, and adjacency substitutions (e.g. Java→Kotlin).
+- [x] A configurable adjacency map drives substitutions; substitutions are scored lower than exact.
+- [x] Roles where no one fully matches still return a ranked list with explicit gap explanations.
 
 ## Tasks
 
@@ -30,11 +30,11 @@ adjacent-skill substitutions — all deterministic, before any LLM is involved.
       Weight is passed in (no hard-coding); the `Matcher` supplies it from config at I2.
 - [x] **Explainer** (`domain/explain.py`) — `skill_factor` (matched/adjacent/missing tally + detail)
       and `constraint_factors` (one factor per hard-constraint check); the open list later slices enrich.
-- [ ] **CLI** — extend `match` to show score + matched/missing/adjacent skills per consultant.
+- [x] **CLI** — extend `match` to show score + matched/missing/adjacent skills per consultant.
 - [x] **Tests** — `tests/unit/test_skills.py`, `test_scoring.py`, `test_ranking.py`, `test_explain.py`:
       exact/partial coverage, adjacency-scored-lower, missing-skill gap text, ranking order + tie-break,
       and surfaced explanation factors. CLI/eval scenarios land at integration slice I2.
-- [ ] **Scenario evals** — extend golden table with skill-ranking expectations.
+- [x] **Scenario evals** — extend golden table with skill-ranking expectations.
 
 ## Notes
 
