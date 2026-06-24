@@ -23,7 +23,7 @@ Provide guidelines for writing code that prioritizes readability, simplicity, an
 ### Must Have (Critical)
 
 - *RULE-001:* Use meaningful, pronounceable names for variables, functions, classes, and modules
-- *RULE-006:* Names must be **domain/business-driven**, drawn from the ubiquitous language — not generic-technical or vague. Prefer the business concept (e.g. `eligibility`, `availability`, `screen_consultants`) over generic verbs/nouns (`check`, `process`, `handle`, `matching`, `data`). A staffing-domain reader should understand a name without reading its body. See `docs/rules/domain-driven-design.md`.
+- *RULE-006:* Names must be **domain/business-driven**, drawn from the ubiquitous language — not generic-technical or vague. Prefer the business concept (e.g. `eligibility`, `availability`, `screen_consultants`) over generic verbs/nouns (`check`, `process`, `handle`, `matching`, `data`). A staffing-domain reader should understand a name without reading its body. See `.claude/principles/domain-driven-design.md`.
 - *RULE-002:* Functions must be small (ideally <20 lines) and do one thing well
 - *RULE-003:* Eliminate code duplication - follow the DRY principle strictly
 - *RULE-004:* Remove commented-out code and dead code before committing

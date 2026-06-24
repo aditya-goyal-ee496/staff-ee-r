@@ -2,7 +2,7 @@
 
 Safe *only* because `build_matcher` fails closed: it raises if an LLM or semantic path is
 wired with this null scrubber, so unscrubbed text can never reach an LLM
-(`docs/tasks/00b-contracts.md`, `docs/rules/security.md`).
+(`docs/tasks/00b-contracts.md`, `.claude/principles/security.md`).
 """
 
 from __future__ import annotations

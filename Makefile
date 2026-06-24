@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install test eval lint format match clean sync-claude
+.PHONY: help install test eval lint format match arch clean
 
 ROLE ?= backend engineer with database experience
 
@@ -28,10 +28,8 @@ format:  ## Auto-format and apply safe lint fixes
 match:  ## Run the matcher for a role, e.g. make match ROLE="backend engineer"
 	uv run staffeer match "$(ROLE)"
 
+arch:  ## Open the LikeC4 diagram viewer (requires Node; wraps `npx likec4 start`)
+	npx likec4 start
+
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache **/__pycache__
-
-sync-claude:  ## Install local slash commands from docs/commands into .claude/commands (.claude is git-ignored)
-	@mkdir -p .claude/commands
-	@cp docs/commands/*.md .claude/commands/
-	@echo "Installed slash commands into .claude/commands: $$(ls docs/commands/*.md | xargs -n1 basename | sed 's/.md//' | tr '\n' ' ')"

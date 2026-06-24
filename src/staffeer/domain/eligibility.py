@@ -3,8 +3,8 @@
 A consultant is *eligible* for a role only when they clear every **hard constraint**:
 **location** and **availability**. Hard constraints are deterministic and never use the LLM
 (`CLAUDE.md` principle 2). An ineligible consultant is screened out *with a reason* —
-exclusions are surfaced, never silently dropped (slice 02, `docs/rules/code-quality.md`).
-No I/O lives here (dependency rule, `docs/rules/hexagonal-architecture.md`).
+exclusions are surfaced, never silently dropped (slice 02, `.claude/principles/code-quality.md`).
+No I/O lives here (dependency rule, `.claude/principles/hexagonal-architecture.md`).
 
 **Location-string contract** (what Track B's xlsx loader must produce): a location is
 `"City"` or `"City, Region"`. `Region` defaults to **India** when only a city is given, since

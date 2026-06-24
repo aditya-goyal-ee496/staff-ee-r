@@ -31,7 +31,7 @@ until this lands. Keep it tiny (one reviewer, <30 min). See
 - [x] **`.env.example`** — `OPENROUTER_API_KEY=`, commented `STAFFEER_DATA`.
 - [x] **Trivial test** — one passing unit test (e.g. config loads defaults) so `make test` is green.
 - [x] **CI fast lane** (`.github/workflows/ci.yml`) — install core deps only, run `make lint`
-      + `make test`; required for merge (`docs/rules/git-rules.md` RULE-006). No secrets, no
+      + `make test`; required for merge (`CLAUDE.md` (Git workflow)). No secrets, no
       network, no heavy models. The **heavy lane** (`integration.yml`) is scaffolded in
       [`00b-contracts.md`](00b-contracts.md)/Track F as the real-data + relevance evals land.
 

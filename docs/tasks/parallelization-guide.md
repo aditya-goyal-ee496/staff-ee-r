@@ -3,7 +3,7 @@
 Read this first. It explains how Staffeer's build is sequenced so **2–3 developers** can work
 concurrently, every PR is atomically testable, CI gates from the first commit, and `main`
 stays deployable. It complements [`00-build-plan.md`](00-build-plan.md) (the slice index) and
-the rule files in `docs/rules/`.
+the rule files in `.claude/principles/`.
 
 ## The shape: bootstrap → contracts → fan-out → integration
 
@@ -82,7 +82,7 @@ real-vs-null per port; CLI flags are thin overrides merged into config, not a pa
   models). `make lint` (ruff format-check + ruff check + **mypy strict**) + `make test`
   (unit + fixture-integration + **deterministic scenario evals, 100% green required**).
   LLM/semantic appear only via stubs/null objects; real-data/key tests are `skipif`-gated.
-  **Gates merge (`git-rules.md` RULE-006).**
+  **Gates merge (CLAUDE.md → Git workflow).**
 - **Heavy lane (`integration.yml`)** — nightly + on `run-heavy` label + manual dispatch; has
   secrets. Optional dep groups + spaCy model; real-data integration, Milvus round-trip, full
   `make eval` incl. DeepEval/Promptfoo relevance (LLM-as-judge). Path-/label-filtered to PRs
@@ -91,7 +91,7 @@ real-vs-null per port; CLI flags are thin overrides merged into config, not a pa
 
 ## Spec-driven + TDD + eval-first (how every task is built)
 
-- **Spec-first** (`docs/rules/spec-driven-development.md`). The port contract (frozen in C1/C2)
+- **Spec-first** (`.claude/commands/specify.md`). The port contract (frozen in C1/C2)
   is the **spec**, reviewed and approved *before* implementation; the `tests/contract/` suite is
   that spec made executable. A track implements only what makes its frozen contract suite pass —
   it never reshapes a frozen contract (amend the spec + re-approve instead, RULE-004).
@@ -115,7 +115,7 @@ Extends the build-plan DoD; each task file references this list.
 - [ ] **Negative scenario present** (mandatory): no-viable-match, location-blocked,
       malformed-row, unverified-skill, or PII-leak attempt — whichever applies (RULE-104).
 - [ ] **Right pyramid layer:** domain → `tests/unit/` (no mocks); port → `tests/contract/`
-      suite (every adapter, real or null, passes it — `spec-driven-development.md` RULE-002);
+      suite (every adapter, real or null, passes it — `.claude/commands/specify.md` (SDD foundations Rule 2));
       adapter → `tests/integration/` against a small real/fixture sample; scenario → `evals/`
       golden table (RULE-101/102).
 - [ ] **Eval acceptance:** integration slices add/extend the deterministic golden table
@@ -129,8 +129,8 @@ Extends the build-plan DoD; each task file references this list.
       calls + PII-scrubbing actions logged for audit.
 - [ ] **Explainability:** every new factor that moved the rank appended as an
       `ExplanationFactor` and surfaced (Principle 1).
-- [ ] **Reviewed & approved** (`task-execution.md`), then committed via PR — Conventional
-      Commits, branch `type/short-desc`, reviewable in <30 min (`git-rules.md`).
+- [ ] **Reviewed & approved** (`CLAUDE.md → Development workflow`), then committed via PR — Conventional
+      Commits, branch `type/short-desc`, reviewable in <30 min (`CLAUDE.md → Git workflow`).
 
 ## What cannot be parallelized (and why)
 

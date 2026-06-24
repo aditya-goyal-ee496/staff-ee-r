@@ -1,6 +1,6 @@
 # L2 — Containers
 
-> **Canonical model:** the architecture is defined in LikeC4 at `docs/architecture/model.staffeer.c4` (views `context` / `containers`). The Mermaid diagram below is a rendered mirror — keep it in sync with the `.c4` model when the architecture changes (see `docs/rules/likec4.md`).
+> **Canonical model:** the architecture is defined in LikeC4 at `docs/architecture/model.staffeer.c4` (views `context` / `containers`). The Mermaid diagram below is a rendered mirror — keep it in sync with the `.c4` model when the architecture changes (see `.claude/rules/likec4.md`).
 
 
 Staffeer is a single Python application (a CLI plus an eval harness), not a distributed

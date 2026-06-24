@@ -14,17 +14,28 @@ final decision.
 
 ## Control plane
 
-This repo is governed by a control plane that loads into every AI-assisted session:
+This repo is governed by a control plane that loads into every AI-assisted session. It is split
+into **Claude-operational** material under `.claude/` and **domain context** under `docs/`:
 
-- **[`CLAUDE.md`](CLAUDE.md)** — system context, principles, architecture, binding rules.
-- **[`docs/conventions.md`](docs/conventions.md)** — development standards.
-- **[`docs/rules/`](docs/rules/)** — concrete engineering rules (`RULE-xxx`): hexagonal,
-  DDD, SOLID, clean-code, testing, security, git, API design, LikeC4, task execution.
-- **[`docs/principles/`](docs/principles/)** — 12-factor, production components, system design.
+- **[`CLAUDE.md`](CLAUDE.md)** — entry point: system context, architecture, the binding
+  Development workflow (spec-driven dev, task execution, git conventions).
+- **[`.claude/principles/`](.claude/principles/)** — binding engineering principles (`RULE-xxx`):
+  hexagonal, DDD, SOLID, clean-code, code-quality, testing, security, API design; plus 12-factor,
+  production components, system design, and the system NFRs (`system-nfrs.md`).
+- **[`.claude/rules/`](.claude/rules/)** — actionable how-to guidelines (`likec4.md`).
+- **[`.claude/commands/`](.claude/commands/)** — slash commands (`/clarify`, `/breakdown`,
+  `/specify`, `/build-feature`, `/orchestrate`).
+- **[`.claude/orchestration/`](.claude/orchestration/)** — the multi-agent orchestration layer.
+- **[`docs/conventions.md`](docs/conventions.md)** — development standards (summary + pointers).
 - **[`docs/architecture/`](docs/architecture/)** — LikeC4 model (canonical) + Mermaid mirrors.
 - **[`docs/adr/`](docs/adr/)** — architecture decision records.
 - **[`docs/tasks/`](docs/tasks/)** — the task-level build plan (start at
   [`00-build-plan.md`](docs/tasks/00-build-plan.md)).
+
+**Documentation map.** `.claude/` is what Claude operationally uses — *how* to build (principles,
+how-to rules, commands, orchestration). `docs/` is domain context — *what* we're building and
+*why* (architecture, decisions, the task plan, conventions). `CLAUDE.md` is the always-loaded
+entry point that ties the two together.
 
 ## How it works
 
@@ -89,16 +100,34 @@ then `match` takes a sheet role id (`staffeer roles` lists them).
 
 ## Development workflow
 
-Plan-first and approval-gated (see [`docs/rules/task-execution.md`](docs/rules/task-execution.md)):
+Plan-first and approval-gated (canonical in [`CLAUDE.md`](CLAUDE.md) → **Development workflow**):
 
 1. Pick the next unblocked task from a `docs/tasks/*.md` checklist; mark it `[~]`.
-2. Implement the simplest thing that meets its acceptance criteria.
-3. `make format && make test && make lint` (all green).
-4. **Request review, wait for approval.**
-5. Mark `[x]`; commit with Conventional Commits on a `feat/<slice>` branch via PR.
+2. Spec first if it changes a contract — author + approve the spec via **`/specify`** before code.
+3. Implement the simplest thing that meets its acceptance criteria.
+4. `make format && make test && make lint` (all green).
+5. **Request review, wait for approval.**
+6. Mark `[x]`; commit with Conventional Commits on a `feat/<slice>` branch via PR.
 
-Refine vague ideas with **`/clarify`** and decompose epics with **`/breakdown`** (command
-definitions in [`docs/commands/`](docs/commands/), installed in `.claude/commands/`).
+Refine vague ideas with **`/clarify`** and decompose epics with **`/breakdown`**. Command and
+workflow definitions live in [`.claude/commands/`](.claude/commands/) and
+[`.claude/orchestration/`](.claude/orchestration/).
+
+## Architecture diagrams (LikeC4)
+
+The architecture is modelled canonically in **LikeC4** (`docs/architecture/*.c4`, project config
+`likec4.config.json`); [`L1-system-context.md`](docs/architecture/L1-system-context.md) and
+[`L2-containers.md`](docs/architecture/L2-containers.md) carry rendered **Mermaid** mirrors for
+quick reading. Authoring rules: [`.claude/rules/likec4.md`](.claude/rules/likec4.md).
+
+To explore the model interactively (requires Node):
+
+```bash
+make arch                              # interactive viewer (wraps `npx likec4 start`)
+npx likec4 start                       # same, directly
+npx likec4 export png -o docs/architecture/   # render static images
+npx likec4 build                       # build a browsable static site
+```
 
 ## Repository layout
 
@@ -106,10 +135,11 @@ definitions in [`docs/commands/`](docs/commands/), installed in `.claude/command
 CLAUDE.md            control-plane entry point
 Makefile             build / test / eval / run targets
 likec4.config.json   LikeC4 project config
+.claude/             control plane: principles, rules, commands, orchestration
 src/staffeer/        domain / ports / adapters / cli   (built per docs/tasks/)
 tests/               unit + integration
 evals/               scenario evals now; Promptfoo + DeepEval later
-docs/                rules, principles, architecture, adr, tasks, commands, conventions
+docs/                domain context: architecture, adr, tasks, conventions
 planning/raw-data/   source data (git-ignored)
 ```
 
@@ -200,6 +230,9 @@ high-performing teams.
 - Non-deterministic systems cannot achieve perfect accuracy; balance thoroughness with constraints.
 
 ### Guiding principles for the system
+
+These quality attributes (NFRs) are also captured for the build system in
+[`.claude/principles/system-nfrs.md`](.claude/principles/system-nfrs.md) — keep the two in sync.
 
 - **Accurate & Relevant** — is it correct, and did it answer what was actually asked?
   Track-based systems (e.g. policy bots) have ground truth, so accuracy is measurable;

@@ -105,9 +105,9 @@ it('test1', () => {
 
 ## Related Rules
 
-- rules/solid-principles.md - SOLID design makes code testable
-- rules/clean-code.md - Clean code principles apply equally to test code
-- rules/task-execution.md - Tests must pass before approving a TODO item
+- .claude/principles/solid-principles.md - SOLID design makes code testable
+- .claude/principles/clean-code.md - Clean code principles apply equally to test code
+- CLAUDE.md → Development workflow - Tests must pass before approving a TODO item
 
 ---
 

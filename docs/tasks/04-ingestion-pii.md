@@ -39,4 +39,4 @@ markdown — and establish the PII-scrubbing boundary that all LLM-bound text mu
 ## Notes
 
 - New joiners' skills are **unverified** — tag provenance so later scoring can weight accordingly.
-- `docs/rules/security.md`: never log PII; validate/normalize parsed input at the boundary.
+- `.claude/principles/security.md`: never log PII; validate/normalize parsed input at the boundary.

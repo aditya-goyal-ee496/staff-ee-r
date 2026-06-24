@@ -1,7 +1,7 @@
 name: CI
 
 # Fast lane: hermetic, core + dev deps only — no secrets, no network, no heavy models.
-# Gates merge (docs/rules/git-rules.md). The heavy lane (integration.yml) lands later.
+# Gates merge (CLAUDE.md (Git workflow)). The heavy lane (integration.yml) lands later.
 on:
   pull_request:
   push:

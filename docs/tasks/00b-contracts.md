@@ -4,7 +4,7 @@
 composition root, and a contract-test suite per port** so that — in a ports-and-adapters system —
 every track can build adapters and domain logic *in parallel* against a stable surface without
 colliding in shared files. This is the second (and last) irreducible serial step; once it merges,
-the work fans out. These frozen contracts **are the specs** (`docs/rules/spec-driven-development.md`)
+the work fans out. These frozen contracts **are the specs** (`.claude/commands/specify.md`)
 that every track is reviewed against before implementation.
 
 **Type:** Task (technical) · **Priority:** P0 · **Depends on:** S0 ([`00a-ci-baseline.md`](00a-ci-baseline.md)) ·
@@ -27,7 +27,7 @@ open after **C2**. See [`parallelization-guide.md`](parallelization-guide.md).
       end-to-end returning an empty/inert result (all ports default to their null object).
 - [x] A **contract-test suite per port** in `tests/contract/`, parametrised over an
       implementation; the null object passes it now and every real adapter (Tracks B–E) reuses it
-      unchanged (`docs/rules/spec-driven-development.md` RULE-002). `make test`/`lint` green.
+      unchanged (`.claude/commands/specify.md` (SDD foundations, Rule 2)). `make test`/`lint` green.
 
 ### Tasks
 
@@ -90,7 +90,7 @@ informed by the real scoring core). Lands while Track A is mid-flight — serial
 
 - This is *interfaces + dataclasses + no-op bodies + contract suites* — designed to read fast
   and freeze cleanly. The contract suites are the **executable spec** each port is reviewed and
-  approved against before any track implements it (`docs/rules/spec-driven-development.md`).
+  approved against before any track implements it (`.claude/commands/specify.md`).
 - Adding a defaulted optional field is the only non-breaking model change; design so that is
   the only kind ever needed downstream.
 - Definition of Done: see [`parallelization-guide.md`](parallelization-guide.md).

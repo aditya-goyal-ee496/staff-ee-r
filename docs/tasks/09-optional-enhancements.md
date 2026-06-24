@@ -16,8 +16,8 @@ independently optional.
       consultant; surface team-level trade-offs. (New driving use case over the same core.)
 - [ ] **Batch file input** — accept a file of open roles and emit shortlists for each.
 - [ ] **Web interface** — a thin web driving adapter over the core. If built, follow
-      `docs/rules/api-design.md` (versioned `/v1`, consistent errors, pagination) and
-      `docs/rules/security.md` (authn/z, input validation, headers).
+      `.claude/principles/api-design.md` (versioned `/v1`, consistent errors, pagination) and
+      `.claude/principles/security.md` (authn/z, input validation, headers).
 - [ ] **Persistence** — move supply/demand from xlsx to a database adapter behind the existing port.
 - [ ] **Observability** — metrics/tracing for the pipeline and LLM calls.
 

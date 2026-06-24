@@ -17,13 +17,13 @@ task-file, list `docs/tasks/*.md` and ask which slice to build.
 ## Process
 
 Follow the `/orchestrate` process with the workflow fixed to `build-feature`:
-1. Read `docs/orchestration/workflows/build-feature.js` `meta.orchestrator` (stages + inputs).
+1. Read `.claude/orchestration/workflows/build-feature.js` `meta.orchestrator` (stages + inputs).
 2. Read the task file → `taskFileText`.
 3. Mint a dated, unique run id + log dir under `.claude/orchestration/logs/` via Bash.
 4. Pick the mode (default gate).
 5. On a `feat/<slice>` branch (never main), drive the stages spec → decompose → tests → implement →
    quality → verify → architecture → report → finalize, invoking the workflow once per stage via
-   `Workflow({scriptPath:"docs/orchestration/workflows/build-feature.js", args:{stage, ...}})`,
+   `Workflow({scriptPath:".claude/orchestration/workflows/build-feature.js", args:{stage, ...}})`,
    appending records to the ledger, and handling each gate per the mode.
 6. Finalize: write summary.json + index line, commit per git-rules if approved, print the per-agent
    performance report + log dir.

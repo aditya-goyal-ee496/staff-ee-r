@@ -1,6 +1,6 @@
 # L1 — System Context
 
-> **Canonical model:** the architecture is defined in LikeC4 at `docs/architecture/model.staffeer.c4` (views `context` / `containers`). The Mermaid diagram below is a rendered mirror — keep it in sync with the `.c4` model when the architecture changes (see `docs/rules/likec4.md`).
+> **Canonical model:** the architecture is defined in LikeC4 at `docs/architecture/model.staffeer.c4` (views `context` / `containers`). The Mermaid diagram below is a rendered mirror — keep it in sync with the `.c4` model when the architecture changes (see `.claude/rules/likec4.md`).
 
 
 Staffeer in its environment: who uses it, what it depends on, and what flows in and out.

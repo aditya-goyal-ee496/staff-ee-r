@@ -1,6 +1,6 @@
 """Frozen domain models and value objects — the contracts every track builds against.
 
-Pure Pydantic, no I/O (dependency rule, `docs/rules/hexagonal-architecture.md`). All known
+Pure Pydantic, no I/O (dependency rule, `.claude/principles/hexagonal-architecture.md`). All known
 optional fields are pre-baked with safe defaults so later slices add behaviour without a
 breaking model change (`docs/tasks/00b-contracts.md`). Ubiquitous language is taken from the
 brief: beach, roll-off, new joiner, co-location, Chennai-open.

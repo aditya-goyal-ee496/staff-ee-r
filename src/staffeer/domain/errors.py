@@ -2,7 +2,8 @@
 
 Errors are defined in the core; adapters map infrastructure failures (bad xlsx, corrupt
 PDF, PII-engine failure) onto these at the boundary, so the domain never sees an
-infrastructure exception (`docs/rules/hexagonal-architecture.md`, `docs/rules/code-quality.md`).
+infrastructure exception (`.claude/principles/hexagonal-architecture.md`,
+`.claude/principles/code-quality.md`).
 """
 
 from __future__ import annotations

@@ -3,7 +3,7 @@
 A match score is a **sum of named `ScoreContribution`s**, never a monolithic formula: each track
 appends a contributor (skills here; semantic and soft-LLM later) and `assemble_match` sums them,
 so the blend stays valid as contributors are added (`docs/tasks/parallelization-guide.md`). Pure,
-no I/O (`docs/rules/hexagonal-architecture.md`).
+no I/O (`.claude/principles/hexagonal-architecture.md`).
 """
 
 from __future__ import annotations

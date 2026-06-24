@@ -23,10 +23,10 @@ If no `task-file` is given, list `docs/tasks/*.md` and ask which slice to build 
 
 ## Process
 
-Follow the `/orchestrate` process (`docs/commands/orchestrate.md`) with the workflow fixed to
+Follow the `/orchestrate` process (`.claude/commands/orchestrate.md`) with the workflow fixed to
 `build-feature`:
 
-1. Read `docs/orchestration/workflows/build-feature.js` `meta.orchestrator` for its stages and inputs.
+1. Read `.claude/orchestration/workflows/build-feature.js` `meta.orchestrator` for its stages and inputs.
 2. Read the task file; that text is the `taskFileText` input.
 3. Mint a dated, unique run id + log dir under `.claude/orchestration/logs/`.
 4. Pick the mode (default `gate`).
@@ -37,7 +37,7 @@ Follow the `/orchestrate` process (`docs/commands/orchestrate.md`) with the work
 6. Finalize: write the run summary + index line, commit per git-rules if approved, and print the
    per-agent performance report.
 
-The build-feature stage shape and its gates are documented in `docs/orchestration/README.md`.
+The build-feature stage shape and its gates are documented in `.claude/orchestration/README.md`.
 
 ## Guidelines
 

@@ -1,6 +1,7 @@
 planning/raw-data
 .env
-.claude
+.claude/worktrees
+.claude/orchestration/logs
 .obsidian
 .DS_Store
 .venv/

@@ -29,7 +29,7 @@ become possible here.
       + cited sources) (`ports/`).
 - [ ] **DSPy adapter** (`adapters/dspy_openrouter.py`) — configure DSPy LM via OpenRouter key from
       env; signatures for fit/feedback assessment; deterministic settings where repeatability matters
-      (`docs/rules/` — decide-where-variance-is-allowed).
+      (`.claude/principles/` — decide-where-variance-is-allowed).
 - [ ] **Free-text role parsing** — DSPy signature to extract required skills/seniority/constraints
       from a free-text query into a `Role`-like structure; validate the result.
 - [ ] **Soft scoring + blend** — combine hard (02) + lexical (03) + semantic (05) + soft (06) scores
@@ -42,5 +42,5 @@ become possible here.
 
 ## Notes
 
-- Do not mock domain logic in tests; only stub the `LLMReasoner` port (`docs/rules/testing-principles.md`).
+- Do not mock domain logic in tests; only stub the `LLMReasoner` port (`.claude/principles/testing-principles.md`).
 - Keep prompts/signatures versioned; changes here require eval results in the PR.

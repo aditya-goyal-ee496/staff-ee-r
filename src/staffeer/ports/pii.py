@@ -3,7 +3,7 @@
 The spec (`docs/tasks/00b-contracts.md`): `scrub(text)` returns a `ScrubbedText` carrying the
 cleaned text and the entity types removed; it never raises on arbitrary input (a scrubber
 failure is mapped to `PIIScrubbingError` so text cannot leak unscrubbed — fail closed,
-`docs/rules/security.md`).
+`.claude/principles/security.md`).
 """
 
 from __future__ import annotations

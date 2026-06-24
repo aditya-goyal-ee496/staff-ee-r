@@ -1,13 +1,13 @@
 # Staffeer — Build Plan
 
 The complete, task-level plan to build Staffeer. Decomposed by **vertical slicing**
-(`docs/commands/breakdown.md`): each slice delivers user-visible value end to end and is
-shippable on its own. Follow the execution loop in `docs/rules/task-execution.md` —
-**approve the spec/contract first** (`docs/rules/spec-driven-development.md`) → contract/unit
+(`.claude/commands/breakdown.md`): each slice delivers user-visible value end to end and is
+shippable on its own. Follow the execution loop in `CLAUDE.md (Development workflow)` —
+**approve the spec/contract first** (`.claude/commands/specify.md`) → contract/unit
 test → simplest solution → `make format/test/lint` → **review & approval** → mark `[x]` →
-commit per `docs/rules/git-rules.md`.
+commit per `CLAUDE.md (Git workflow)`.
 
-State markers (`docs/rules/long-running-tasks.md`): `[ ]` not started · `[~]` in progress · `[x]` done.
+State markers (`CLAUDE.md (Development workflow)`): `[ ]` not started · `[~]` in progress · `[x]` done.
 
 > **Working as a team?** Read [`parallelization-guide.md`](parallelization-guide.md) first. The
 > 9 slices below were chained serially because they edit the same files — not because of real
@@ -60,7 +60,7 @@ prerequisites; A–F = parallel tracks; I1–I7 = integration-wiring PRs). The o
 - [ ] Acceptance criteria in the slice file met.
 - [ ] Unit tests for new domain logic; integration tests for new adapters; **negative scenarios** included.
 - [ ] `make format`, `make test`, `make lint` all green.
-- [ ] New ports/adapters respect the dependency rule (`docs/rules/hexagonal-architecture.md`).
+- [ ] New ports/adapters respect the dependency rule (`.claude/principles/hexagonal-architecture.md`).
 - [ ] Explanations updated so every new factor is surfaced to the user (Principle 1).
 - [ ] Reviewed and approved; committed via PR with Conventional Commits.
 
@@ -75,6 +75,6 @@ prerequisites; A–F = parallel tracks; I1–I7 = integration-wiring PRs). The o
    a real adapter or flips a config flag. I1 is the first shippable beach matcher.
 4. For each `[ ]` task: mark `[~]`, follow the per-PR **Definition of Done** in the guide
    (test-first + mandatory negative scenario → `make format/test/lint` → review & approval →
-   mark `[x]` → commit per `git-rules.md`).
+   mark `[x]` → commit per `CLAUDE.md → Git workflow`).
 5. Use `/breakdown` to split any task that grows beyond ~4 hours, and `/clarify` for any
    ambiguous requirement before starting it.

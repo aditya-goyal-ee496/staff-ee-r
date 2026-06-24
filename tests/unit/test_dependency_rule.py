@@ -1,7 +1,7 @@
 """Architecture guard: the domain core imports no adapters, CLI, config, or I/O libraries.
 
 This keeps the fan-out boundary stable — domain stays pure so tracks build against it in
-parallel (`docs/rules/hexagonal-architecture.md`).
+parallel (`.claude/principles/hexagonal-architecture.md`).
 """
 
 from __future__ import annotations

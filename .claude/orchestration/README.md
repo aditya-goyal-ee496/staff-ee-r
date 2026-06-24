@@ -18,7 +18,7 @@ Two pieces, cleanly separated:
 /orchestrate <workflow> <input> [mode]      ← Opus; generic manager + ledger
         │  reads meta.orchestrator (manifest), drives one stage at a time
         ▼
-docs/orchestration/workflows/<name>.js      ← JS Workflow-engine script; owns the logic
+.claude/orchestration/workflows/<name>.js      ← JS Workflow-engine script; owns the logic
         │  spawns sub-agents — ONE atomic instruction each (haiku/sonnet by model-usage.md)
         ▼
 .claude/orchestration/logs/<date>/<runId>/  ← per-run JSON ledger (git-ignored runtime)
@@ -39,7 +39,7 @@ workflow is the **use-case logic**, sub-agents are **workers**, and the ledger i
 
 | Mode | Gates | Use when |
 |---|---|---|
-| `gate` (default) | Pause for human approval at **every** gate (spec, architecture/ADR, commit). | Normal use; honours `task-execution.md`. |
+| `gate` (default) | Pause for human approval at **every** gate (spec, architecture/ADR, commit). | Normal use; honours `CLAUDE.md → Development workflow`. |
 | `checkpoint` | Auto-approve intermediate gates; pause **once** before commit. | You trust the slice and want fewer interruptions. |
 | `autonomous` | No pauses; commit on a branch. | Low-risk, well-scoped work; maximum throughput. |
 
@@ -72,14 +72,11 @@ A single fixed pipeline (the Spec stage self-skips when the slice changes no con
 ## Adding a new workflow
 
 See [`workflow-contract.md`](workflow-contract.md#4-how-to-add-a-workflow). In short: drop a new
-`docs/orchestration/workflows/<name>.js` with a `meta.orchestrator` manifest and stages that return the
+`.claude/orchestration/workflows/<name>.js` with a `meta.orchestrator` manifest and stages that return the
 standard envelope. `/orchestrate <name>` picks it up automatically — no orchestrator changes.
 
-## Installing the slash commands locally
+## Slash commands
 
-Slash commands must live in `.claude/commands/` (git-ignored, local). The tracked source of truth is
-`docs/commands/*.{md,toml}`. Install/refresh the local copies with:
-
-```bash
-make sync-claude
-```
+Slash command definitions are tracked in `.claude/commands/*.{md,toml}` — where Claude Code reads
+them directly. No install/sync step is needed; edit them in place. (Only `.claude/worktrees/` is
+git-ignored; the rest of `.claude/` is tracked.)

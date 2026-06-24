@@ -7,7 +7,7 @@ fixed contract. Adding a new workflow (e.g. a validation-signal-driven `review`,
 changes**.
 
 Workflows are JS scripts for the built-in Workflow engine, kept under
-`docs/orchestration/workflows/<name>.js` (tracked) and invoked by the orchestrator via the Workflow
+`.claude/orchestration/workflows/<name>.js` (tracked) and invoked by the orchestrator via the Workflow
 tool's `scriptPath`. The engine sandbox has **no filesystem access** and **no `Date.now()` /
 `Math.random()`** — so a workflow never writes the ledger itself; it *returns* data and the
 orchestrator (the main loop) stamps timestamps and writes files.
@@ -46,9 +46,9 @@ export const meta = {
 }
 ```
 
-The orchestrator reads this block (it scans `docs/orchestration/workflows/*.js`) to learn **what
+The orchestrator reads this block (it scans `.claude/orchestration/workflows/*.js`) to learn **what
 inputs to gather, which stages are gates, and what models will run** — without knowing what any stage
-*does*. It also checks each stage's declared `models` against `docs/orchestration/model-usage.md` and
+*does*. It also checks each stage's declared `models` against `.claude/orchestration/model-usage.md` and
 warns on a violation.
 
 ## 2. Stage protocol
@@ -58,7 +58,7 @@ mid-script for human input). It passes the requested stage and any prior approve
 
 ```js
 Workflow({
-  scriptPath: 'docs/orchestration/workflows/build-feature.js',
+  scriptPath: '.claude/orchestration/workflows/build-feature.js',
   args: {
     stage: 'implement',                 // which stage to run now
     mode: 'gate',                       // gate | checkpoint | autonomous
@@ -122,9 +122,9 @@ regardless of mode.
 
 ## 4. How to add a workflow
 
-1. Create `docs/orchestration/workflows/<name>.js` with the `meta.orchestrator` block above.
+1. Create `.claude/orchestration/workflows/<name>.js` with the `meta.orchestrator` block above.
 2. Implement each declared stage; branch on `args.stage`; return the standard envelope.
-3. Choose per-agent models from `docs/orchestration/model-usage.md`; give every `agent()` an explicit
+3. Choose per-agent models from `.claude/orchestration/model-usage.md`; give every `agent()` an explicit
    `label`, `phase`, `model`, and `effort`.
 4. Keep each agent to **exactly one atomic instruction**.
 5. That's it — `/orchestrate <name> <input>` now discovers and drives it. No orchestrator edits.

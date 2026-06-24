@@ -1,6 +1,6 @@
 """Shared sample data for the per-port contract suites.
 
-Each suite (`docs/rules/spec-driven-development.md` RULE-002) is parametrised over an
+Each suite (`.claude/commands/specify.md` (SDD foundations, Rule 2)) is parametrised over an
 implementation fixture. C1 ships the null objects / in-memory source as the first
 implementations; Track B–E adapters reuse these same suites unchanged.
 """

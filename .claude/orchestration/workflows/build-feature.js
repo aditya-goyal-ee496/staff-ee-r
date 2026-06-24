@@ -1,6 +1,6 @@
 // build-feature — turn one docs/tasks/*.md slice into reviewed, tested, architecture-checked code.
 //
-// Driven by /orchestrate one STAGE at a time (see docs/orchestration/workflow-contract.md). The
+// Driven by /orchestrate one STAGE at a time (see .claude/orchestration/workflow-contract.md). The
 // engine sandbox has no filesystem access and no Date.now()/Math.random(): sub-agents do all file
 // edits; this script only returns data and the orchestrator stamps timestamps + writes the ledger.
 //
@@ -40,7 +40,7 @@ export const meta = {
 // ---------------------------------------------------------------------------------------------------
 // Shared context appended to every worker prompt so cheap models stay grounded in the binding rules.
 const RULES_CONTEXT = `
-Binding rules (docs/rules/): hexagonal architecture (domain core has NO I/O; depend through ports);
+Binding rules (.claude/principles/): hexagonal architecture (domain core has NO I/O; depend through ports);
 clean-code (functions < 20 lines, intention-revealing names, no dead code); testing-principles
 (one assertion/test, AAA, no mocking domain logic); security (PII scrubbed before any LLM call,
 never log PII/secrets); code-quality (specific errors, structured logging only). Ubiquitous language:
@@ -129,7 +129,7 @@ phase(stage)
 // === spec ==========================================================================================
 if (stage === 'spec') {
   const r = await agent(
-    `You are authoring a SPEC for a Staffeer task slice, per docs/rules/spec-driven-development.md.
+    `You are authoring a SPEC for a Staffeer task slice, per .claude/commands/specify.md.
 First decide: does this slice introduce or change a CONTRACT (a port Protocol, a domain model/value
 object, or a shared shape like ScoreContribution)? If NOT, set changesContract=false and return an
 empty instructions array — the spec stage self-skips.
@@ -305,7 +305,7 @@ Address ONLY these findings, simplest change, keep tests green:\n${JSON.stringif
 // === architecture verification + ADR capture (gate) ================================================
 if (stage === 'architecture') {
   const a = await agent(
-    `Architecture review. Compare what this slice changed against docs/rules/hexagonal-architecture.md,
+    `Architecture review. Compare what this slice changed against .claude/principles/hexagonal-architecture.md,
 the ports/adapters dependency rule, and the LikeC4 model in docs/architecture/*.c4. Classify:
 - 'conformant'           : no architectural change, rules respected.
 - 'unintended-deviation' : a rule was violated by accident (list deviations) — must be repaired.

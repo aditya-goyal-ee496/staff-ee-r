@@ -31,7 +31,7 @@ and DeepEval (relevance/faithfulness), including negative scenarios and an LLM-a
       thresholds chosen deliberately (not 100%).
 - [ ] **Make / CI** — `make eval` runs both layers; CI runs deterministic evals always and relevance
       evals on a schedule or label (LLM cost-aware).
-- [ ] **Reporting** — eval summary surfaced in PRs that touch prompts/weights (`git-rules.md`).
+- [ ] **Reporting** — eval summary surfaced in PRs that touch prompts/weights (`CLAUDE.md → Git workflow`).
 
 ## Notes
 

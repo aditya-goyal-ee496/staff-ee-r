@@ -1,8 +1,11 @@
 # Conventions
 
 Development standards for Staffeer. These are binding defaults; deviate only with a recorded
-reason (an ADR, or a comment linking to one). Where a topic has a dedicated rule file in
-`docs/rules/`, that file is authoritative and this page only summarizes + points to it.
+reason (an ADR, or a comment linking to one). Where a topic has a dedicated file under
+`.claude/principles/` (engineering principles) or `.claude/rules/` (how-to guidelines), that file
+is authoritative and this page only summarizes + points to it. The process workflow (spec-driven
+development, task execution, resumable checklists, git conventions) is owned by `CLAUDE.md` →
+**Development workflow** and the `/specify` / `/build-feature` / `/orchestrate` workflows.
 
 ## Toolchain
 
@@ -11,8 +14,8 @@ reason (an ADR, or a comment linking to one). Where a topic has a dedicated rule
 - **Formatter & linter:** `ruff` (format + lint) and `mypy` for type checking. Config in
   `pyproject.toml`. CI fails on `ruff check`, `ruff format --check`, and `mypy`.
 - **Type hints are required** on all public functions, ports, and domain models.
-- **Config from the environment** (`.env`, 12-factor — `docs/principles/12-factor-app.md`); no
-  secrets in code (`docs/rules/security.md`).
+- **Config from the environment** (`.env`, 12-factor — `.claude/principles/12-factor-app.md`); no
+  secrets in code (`.claude/principles/security.md`).
 
 ## Directory structure
 
@@ -37,24 +40,25 @@ tests/
   unit/          # mirrors src/staffeer/; domain core has no mocks needed
   integration/   # adapters against real fixtures (sampled raw data)
 evals/           # scenario evals now; Promptfoo + DeepEval suites + datasets later
-docs/            # control plane: rules/, principles/, architecture/, adr/, tasks/, commands/
+docs/            # domain context: architecture/, adr/, tasks/, conventions.md
+.claude/         # control plane: principles/, rules/, commands/, orchestration/
 planning/        # raw-data only (git-ignored)
 ```
 
-**Spec-driven** (`docs/rules/spec-driven-development.md`): the **port is the spec**. All port
+**Spec-driven** (`.claude/commands/specify.md`): the **port is the spec**. All port
 Protocols, domain value objects, and their `tests/contract/` suites are frozen in the **C1/C2
 contract waves** (`docs/tasks/00b-contracts.md`) and **approved before** implementation begins.
 Each port's contract suite is the executable spec the null object and every real adapter must
 pass. Freezing these contracts up front is the fan-out boundary that lets Tracks A–F run **in
 parallel** (`docs/tasks/parallelization-guide.md`).
 
-**Dependency rule** (`docs/rules/hexagonal-architecture.md`): `domain/` imports nothing from
+**Dependency rule** (`.claude/principles/hexagonal-architecture.md`): `domain/` imports nothing from
 `adapters/`, `cli/`, or third-party I/O libraries. Dependencies point inward. Adapters depend
 on ports, never the reverse. Domain errors are defined in the core; infrastructure errors are
 mapped to domain errors at the adapter boundary. No ORM/serialization annotations on domain
 models.
 
-**Domain modelling** (`docs/rules/domain-driven-design.md`): `Consultant`/`Role` are entities
+**Domain modelling** (`.claude/principles/domain-driven-design.md`): `Consultant`/`Role` are entities
 (identity); `ConstraintCheck`/`Explanation` are immutable value objects; use the ubiquitous
 language from the brief (beach, roll-off, new joiner, co-location, Chennai-open).
 
@@ -65,17 +69,17 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
 - Constants: `UPPER_SNAKE_CASE`. Ports: noun + role (`ProfileParser`, `LLMReasoner`).
 - Adapters: named for the technology they wrap (`milvus_index.py`, `dspy_openrouter.py`) so
   swapping an implementation is obvious.
-- See `docs/rules/clean-code.md`: intention-revealing names, functions <20 lines doing one
+- See `.claude/principles/clean-code.md`: intention-revealing names, functions <20 lines doing one
   thing, <=3 parameters, avoid >3 nesting levels, no dead/commented-out code.
 
-## Testing (`docs/rules/testing-principles.md`)
+## Testing (`.claude/principles/testing-principles.md`)
 
 - One clear assertion per test; Arrange-Act-Assert; descriptive names stating scenario +
   outcome (e.g. `no_viable_match_returns_zero_eligible`). Tests are independent and order-free.
 - **Test pyramid:** many unit tests > fewer integration tests > minimal e2e. Test doubles only
   for external dependencies — never mock domain logic.
 - **Contract tests** (`tests/contract/`): one suite per port, written from the spec **before**
-  the adapter (`docs/rules/spec-driven-development.md` RULE-002). Every adapter for a port must
+  the adapter (`.claude/commands/specify.md`, SDD foundations Rule 2). Every adapter for a port must
   pass that port's suite; a fake satisfying the suite is a legitimate integration double. Prefer
   contract tests over ad-hoc mocking of external services.
 - **Domain core:** unit-tested directly, deterministic. Cover hard-constraint logic (location,
@@ -90,7 +94,7 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
 - Run `make test` on every change; `make eval` before merging anything touching prompts,
   scoring weights, or the LLM path.
 
-## Error handling & logging (`docs/rules/code-quality.md`)
+## Error handling & logging (`.claude/principles/code-quality.md`)
 
 - **No silent failures.** Catch *specific* exceptions, never the base class except in a top-level
   handler. Never log-and-rethrow. Add context via typed `StaffeerError` subclasses at boundaries.
@@ -101,14 +105,14 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
   keys/units, no prose storytelling. One config in `config.py`; no `print` outside the CLI layer.
 - Log LLM calls (model, tokens, latency) and PII-scrubbing actions for auditability.
 
-## Security & governance (`docs/rules/security.md`)
+## Security & governance (`.claude/principles/security.md`)
 
 - Secrets (OpenRouter key) come from `.env` only; `.env` is git-ignored. Never commit keys.
 - Validate/sanitize input at every boundary; reject malformed data. Never log PII, tokens, or keys.
 - Run `PIIScrubber` (Presidio + spaCy) on profile/feedback text before it reaches the LLM.
 - Raw data in `planning/raw-data/` is git-ignored and must stay that way.
 
-## Architecture documentation (`docs/rules/likec4.md`)
+## Architecture documentation (`.claude/rules/likec4.md`)
 
 - **LikeC4 is canonical:** model + views live in `docs/architecture/*.c4` with a
   `likec4.config.json` at repo root. Every element carries business-meaningful descriptions and
@@ -117,45 +121,32 @@ language from the brief (beach, roll-off, new joiner, co-location, Chennai-open)
 - `docs/architecture/L1-system-context.md` and `L2-containers.md` hold rendered **Mermaid**
   mirrors for quick reading; keep them in sync with the `.c4` model when the architecture changes.
 
-## Git workflow (`docs/rules/git-rules.md`)
+## Git & task workflow
 
-- **Conventional Commits:** `type(scope): description` — `feat|fix|chore|docs|refactor|test|ci`;
-  imperative present tense; subject <72 chars; body explains *why*; reference work items
-  (`Refs: docs/tasks/02-beach-matching.md`).
-- **Branches:** `type/short-description` (e.g. `feat/beach-matching`) off `main`. Never commit
-  directly to `main`.
-- **PRs:** small, reviewable in <30 min; squash WIP/fixup commits; describe what/why/how-to-test;
-  delete the branch after merge. All CI checks (lint + test) must pass. PRs touching
-  scoring/prompts must show eval results. Delete branches after merging.
-
-## Task workflow (`docs/rules/task-execution.md`, `docs/rules/long-running-tasks.md`)
-
-- Multi-stage work is tracked as markdown checklists in `docs/tasks/`: `[ ]` not started,
-  `[~]` in progress (update the item in place; add subtasks/detail under it), `[x]` done.
-  Each checklist must carry enough detail to resume with empty context.
-- Execution loop (`docs/rules/spec-driven-development.md`): **author + approve the spec** ->
-  write the contract/unit test from it -> implement the simplest solution ->
-  `make format`/`test`/`lint` -> **request review and wait for approval** -> mark `[x]` ->
-  commit per git-rules.
+The git conventions (Conventional Commits, branch `type/desc` off `main`, small PRs, CI green),
+the task execution loop (spec → contract test → simplest impl → quality gates → review → mark →
+commit), and the resumable-checklist states (`[ ]`/`[~]`/`[x]`) are canonical in `CLAUDE.md` →
+**Development workflow** (and the **Git workflow** subsection). Spec authoring is owned by
+`.claude/commands/specify.md`. This page does not restate them.
 
 ## SOLID & clean code
 
-`docs/rules/solid-principles.md` (SRP; depend on abstractions; <=5 deps per class; shallow
-hierarchies; dependency injection) and `docs/rules/clean-code.md` apply to all production code.
+`.claude/principles/solid-principles.md` (SRP; depend on abstractions; <=5 deps per class; shallow
+hierarchies; dependency injection) and `.claude/principles/clean-code.md` apply to all production code.
 
-## Applicable rule files (index)
+## Applicable files (index)
 
 | Concern | File |
 |---|---|
-| Spec-driven development | `docs/rules/spec-driven-development.md` |
-| Architecture / ports & adapters | `docs/rules/hexagonal-architecture.md` |
-| Domain modelling | `docs/rules/domain-driven-design.md` |
-| OO design | `docs/rules/solid-principles.md` |
-| Readability | `docs/rules/clean-code.md` |
-| Errors & logging | `docs/rules/code-quality.md` |
-| Tests | `docs/rules/testing-principles.md` |
-| Security | `docs/rules/security.md` |
-| HTTP/API (future web adapter) | `docs/rules/api-design.md` |
-| Diagrams | `docs/rules/likec4.md` |
-| Git | `docs/rules/git-rules.md` |
-| Task execution | `docs/rules/task-execution.md`, `docs/rules/long-running-tasks.md` |
+| Architecture / ports & adapters | `.claude/principles/hexagonal-architecture.md` |
+| Domain modelling | `.claude/principles/domain-driven-design.md` |
+| OO design | `.claude/principles/solid-principles.md` |
+| Readability | `.claude/principles/clean-code.md` |
+| Errors & logging | `.claude/principles/code-quality.md` |
+| Tests | `.claude/principles/testing-principles.md` |
+| Security | `.claude/principles/security.md` |
+| HTTP/API (future web adapter) | `.claude/principles/api-design.md` |
+| System quality attributes (NFRs) | `.claude/principles/system-nfrs.md` |
+| Diagrams | `.claude/rules/likec4.md` |
+| Spec-driven development | `.claude/commands/specify.md` |
+| Git, task execution, checklists | `CLAUDE.md` → Development workflow |

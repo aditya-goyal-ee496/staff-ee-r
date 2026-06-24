@@ -36,7 +36,7 @@ into typed domain models through a port + adapter. No matching logic yet.
       `OPENROUTER_API_KEY` from env (12-factor; no secrets in code).
 - [ ] **Domain models** (`domain/models.py`) — `SupplyState`, `Priority` enums; `Consultant`,
       `Role` (frozen Pydantic). Skills as `list[str]`; dates as `date`. Ubiquitous language
-      from the brief (`docs/rules/domain-driven-design.md`).
+      from the brief (`.claude/principles/domain-driven-design.md`).
 - [ ] **Port** (`ports/supply_demand.py`) — `SupplyDemandSource` Protocol: `open_roles()`,
       `role(id)`, `consultants(*states)`.
 - [x] **xlsx adapter** (`adapters/xlsx_supply_demand.py`) — parses the `as of` title date, header
@@ -49,7 +49,7 @@ into typed domain models through a port + adapter. No matching logic yet.
       + the shared `SupplyDemandSource` contract suite now parametrised over the xlsx adapter
       (`tests/contract/`); integration loads the real workbook (`skipif` absent). Malformed
       date/priority negative cases covered.
-- [ ] **CI** — GitHub Actions running `make lint` + `make test` on PRs (`docs/rules/git-rules.md`).
+- [ ] **CI** — GitHub Actions running `make lint` + `make test` on PRs (`CLAUDE.md (Git workflow)`).
 
 ## Notes
 

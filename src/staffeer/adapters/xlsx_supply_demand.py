@@ -4,7 +4,8 @@ Each tab carries a title row (`... as of YYYY-MM-DD ...`), a header row, then da
 adapter normalises the Open Roles tab and the three supply tabs (Beach / Rolling Off / New
 Joiners) into domain `Role`/`Consultant` value objects. Malformed dates, priorities, or
 confidence values fail loudly as `SupplyDemandError` — infrastructure detail never leaks into the
-domain, and rows are never silently dropped (`docs/rules/hexagonal-architecture.md`, slice 01).
+domain, and rows are never silently dropped
+(`.claude/principles/hexagonal-architecture.md`, slice 01).
 """
 
 from __future__ import annotations

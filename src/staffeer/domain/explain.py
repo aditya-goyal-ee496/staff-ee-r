@@ -3,7 +3,7 @@
 Every factor that moved a consultant's standing is stated with the source backing it, so an
 unexplained match is impossible (Principle 1). `Explanation` is an open list of
 `ExplanationFactor`s that later tracks (semantic, soft-LLM) extend without contention. Pure,
-no I/O (`docs/rules/hexagonal-architecture.md`).
+no I/O (`.claude/principles/hexagonal-architecture.md`).
 """
 
 from __future__ import annotations

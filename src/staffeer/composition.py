@@ -24,7 +24,7 @@ def build_matcher(config: StaffeerConfig) -> Matcher:
     """Assemble a `Matcher` from `config`, defaulting every port to its null object.
 
     Fails closed: a wired LLM or semantic path with no real `PIIScrubber` raises, so
-    unscrubbed text can never reach an LLM (`docs/rules/security.md`).
+    unscrubbed text can never reach an LLM (`.claude/principles/security.md`).
     """
     pii = _build_pii_scrubber(config)
     if (config.llm_enabled or config.semantic_enabled) and isinstance(pii, NullPIIScrubber):

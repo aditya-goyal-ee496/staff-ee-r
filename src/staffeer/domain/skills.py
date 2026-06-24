@@ -3,7 +3,7 @@
 Required and consultant skills are reconciled in a single *canonical* form (trimmed, lower-cased,
 de-qualified, de-aliased) so "K8s", "kubernetes" and "Kubernetes (expert)" all match. Adjacency
 captures the brief's rule that a related skill may substitute at a lower score — e.g. a Java
-developer for a Kotlin role. Pure, no I/O (`docs/rules/hexagonal-architecture.md`).
+developer for a Kotlin role. Pure, no I/O (`.claude/principles/hexagonal-architecture.md`).
 """
 
 from __future__ import annotations

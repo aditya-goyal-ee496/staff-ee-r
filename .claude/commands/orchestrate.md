@@ -9,7 +9,7 @@ description: Generic, workflow-agnostic orchestrator — discovers and drives a 
 Drive any self-describing workflow to completion. You (the orchestrator) run on **Opus**: you plan,
 gather inputs, drive stages, adjudicate gates, and record performance — **you never write feature
 code yourself**. All logic lives in the workflow; you know only the contract in
-`docs/orchestration/workflow-contract.md`.
+`.claude/orchestration/workflow-contract.md`.
 
 ## Usage
 
@@ -33,14 +33,14 @@ ask via AskUserQuestion.
 ## Process
 
 ### Step 1 — Resolve the workflow
-List candidates with `ls docs/orchestration/workflows/*.js`. Read the chosen file's
+List candidates with `ls .claude/orchestration/workflows/*.js`. Read the chosen file's
 `export const meta` literal and extract `meta.orchestrator` (its `inputs`, `stages`,
 `maxRepairAttempts`, `emitsLedger`, `commits`). If no workflow arg was given, present the discovered
 workflows (name + description) via AskUserQuestion. **Do not invent a workflow** — only run a file
 that exists.
 
 ### Step 2 — Check the model guideline
-For each stage's declared `models`, cross-check against `docs/orchestration/model-usage.md`. If a
+For each stage's declared `models`, cross-check against `.claude/orchestration/model-usage.md`. If a
 stage declares a model outside its allowed tier, warn the user before proceeding (don't block).
 
 ### Step 3 — Gather declared inputs
@@ -62,19 +62,19 @@ Default `gate`. If not passed, ask via AskUserQuestion (gate / checkpoint / auto
 
 ### Step 6 — Branch if the workflow commits
 If `meta.orchestrator.commits` is true, ensure you are on a `feat/<slice>` branch (or the current
-worktree) — **never operate on `main`** (`docs/rules/git-rules.md`).
+worktree) — **never operate on `main`** (`CLAUDE.md (Git workflow)`).
 
 ### Step 7 — Drive the stages
 Walk `meta.orchestrator.stages` in order, starting at the first stage (or a resume point). For each stage:
 1. Invoke the workflow for exactly that stage:
    ```
-   Workflow({ scriptPath: "docs/orchestration/workflows/<workflow>.js",
+   Workflow({ scriptPath: ".claude/orchestration/workflows/<workflow>.js",
               args: { stage, mode, runId: RID, maxRepairAttempts,
                       ...gatheredInputs, prior: approvedArtifacts } })
    ```
 2. **Append the returned `records`** to `.claude/orchestration/logs/$DATE/$RID/ledger.jsonl`, one JSON
    object per line, adding `runId`, `ts` (`date -u +%FT%TZ`), `workflow`, and `stage` to each (see
-   `docs/orchestration/ledger-schema.md`).
+   `.claude/orchestration/ledger-schema.md`).
 3. If the envelope has `gate.needsApproval`:
    - `kind:'failure'` → **always** stop and escalate to the human with the artifact (bounded
      auto-repair was exhausted inside the workflow).
@@ -88,7 +88,7 @@ Walk `meta.orchestrator.stages` in order, starting at the first stage (or a resu
 ### Step 8 — Finalize
 - Write `.claude/orchestration/logs/$DATE/$RID/summary.json` and append one line to
   `.claude/orchestration/logs/index.jsonl` (shapes in `ledger-schema.md`).
-- If the workflow `commits` and the commit gate was approved, commit per `docs/rules/git-rules.md`
+- If the workflow `commits` and the commit gate was approved, commit per `CLAUDE.md (Git workflow)`
   (Conventional Commit; never to `main`).
 - **Print a performance summary**: per agent — label, model, attempts, status, verdict; plus
   per-model counts, repair count, and pass rate. Point to the run's log dir.

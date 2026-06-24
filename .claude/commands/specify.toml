@@ -5,7 +5,7 @@ prompt = """
 
 Turn a well-defined work item into a **reviewable specification** that becomes the source of
 truth for implementation. This is the first step of the SDD loop in
-`docs/rules/spec-driven-development.md`: **spec -> contract test -> implementation**. Use this
+`.claude/commands/specify.md`: **spec -> contract test -> implementation**. Use this
 after `/clarify` (idea is crisp) and `/breakdown` (work item is appropriately sized), and
 before writing any production code.
 
@@ -18,13 +18,13 @@ before writing any production code.
   `PIIScrubber` — the spec *is* the frozen contract Tracks A-F build against.
 - Specifying a **domain component** (constraint filter, scorer, ranker, explainer) or a shared
   shape (`ScoreContribution`, `ExplanationFactor`).
-- Amending a contract that turned out wrong (`spec-driven-development.md` RULE-004).
+- Amending a contract that turned out wrong (`.claude/commands/specify.md` (SDD foundations Rule 4)).
 
 ## Process
 
 ### Step 1: Establish context
 Read the owning task file in `docs/tasks/`, `docs/conventions.md`,
-`docs/rules/hexagonal-architecture.md`, and `docs/rules/domain-driven-design.md` so the spec is
+`.claude/principles/hexagonal-architecture.md`, and `.claude/principles/domain-driven-design.md` so the spec is
 grounded in the ubiquitous language (beach, roll-off, new joiner, co-location, Chennai-open).
 
 ### Step 2: Draft the contract
@@ -43,12 +43,12 @@ criteria, Error mapping, and a pointer to the contract test `tests/contract/test
 
 ### Step 4: Define the contract test
 Specify (don't implement) the `tests/contract/` suite that makes the spec executable
-(`spec-driven-development.md` RULE-002), listing behaviours including **negative scenarios**.
+(`.claude/commands/specify.md` (SDD foundations Rule 2)), listing behaviours including **negative scenarios**.
 The null-object adapter and every real adapter must pass this one suite.
 
 ### Step 5: Request approval
 Present the spec for review. **Do not start implementation until the spec is approved**
-(`spec-driven-development.md` RULE-001; `task-execution.md` review gate). On approval the
+(`.claude/commands/specify.md` (SDD foundations Rule 1); CLAUDE.md → Development workflow review gate). On approval the
 contract is frozen and the owning track can proceed in parallel behind its null object
 (`docs/tasks/parallelization-guide.md`).
 
