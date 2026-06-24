@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install test eval lint format match clean
+.PHONY: help install test eval lint format match clean sync-claude
 
 ROLE ?= backend engineer with database experience
 
@@ -30,3 +30,8 @@ match:  ## Run the matcher for a role, e.g. make match ROLE="backend engineer"
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache **/__pycache__
+
+sync-claude:  ## Install local slash commands from docs/commands into .claude/commands (.claude is git-ignored)
+	@mkdir -p .claude/commands
+	@cp docs/commands/*.md .claude/commands/
+	@echo "Installed slash commands into .claude/commands: $$(ls docs/commands/*.md | xargs -n1 basename | sed 's/.md//' | tr '\n' ' ')"

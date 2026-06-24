@@ -1,0 +1,36 @@
+description = "Build one docs/tasks/*.md slice into reviewed, tested, architecture-checked code via the build-feature workflow (shortcut for /orchestrate build-feature)"
+
+prompt = """
+## Build Feature
+
+Shortcut for `/orchestrate build-feature <task-file> [mode]`. Run the **build-feature** workflow on a
+single task-list slice. You run on Opus: drive the workflow stage-by-stage, honour its gates, enforce
+the model-usage guideline, and log every agent to a per-run JSON ledger. You never write feature code.
+
+{{args}}
+
+## Usage
+
+`/build-feature [task-file] [mode]` — `mode` ∈ gate (default) | checkpoint | autonomous. With no
+task-file, list `docs/tasks/*.md` and ask which slice to build.
+
+## Process
+
+Follow the `/orchestrate` process with the workflow fixed to `build-feature`:
+1. Read `docs/orchestration/workflows/build-feature.js` `meta.orchestrator` (stages + inputs).
+2. Read the task file → `taskFileText`.
+3. Mint a dated, unique run id + log dir under `.claude/orchestration/logs/` via Bash.
+4. Pick the mode (default gate).
+5. On a `feat/<slice>` branch (never main), drive the stages spec → decompose → tests → implement →
+   quality → verify → architecture → report → finalize, invoking the workflow once per stage via
+   `Workflow({scriptPath:"docs/orchestration/workflows/build-feature.js", args:{stage, ...}})`,
+   appending records to the ledger, and handling each gate per the mode.
+6. Finalize: write summary.json + index line, commit per git-rules if approved, print the per-agent
+   performance report + log dir.
+
+## Guidelines
+DO: honour the spec, architecture/ADR, and commit gates in gate mode; one atomic instruction per
+worker; record every agent.
+DON'T: write feature code yourself; weaken/skip the eval-first tests; mark a task `[x]` not actually
+done; commit to main.
+"""

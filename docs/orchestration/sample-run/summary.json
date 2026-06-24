@@ -1,0 +1,17 @@
+{
+  "runId": "build-feature-2026-06-24T10-15-03-a1b2c3",
+  "workflow": "build-feature",
+  "input": "docs/tasks/02-beach-matching.md",
+  "mode": "gate",
+  "startedAt": "2026-06-24T10:15:03Z",
+  "endedAt": "2026-06-24T10:31:20Z",
+  "outcome": "completed",
+  "gates": [
+    { "stage": "spec", "decision": "approved" },
+    { "stage": "architecture", "decision": "approved" },
+    { "stage": "finalize", "decision": "approved", "commit": "feat(matching): add beach-only hard-constraint matching" }
+  ],
+  "agentsByModel": { "opus": 0, "sonnet": 9, "haiku": 2 },
+  "repairs": 1,
+  "passRate": 1.0
+}

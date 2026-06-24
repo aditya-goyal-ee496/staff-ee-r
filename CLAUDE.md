@@ -89,6 +89,14 @@ Track multi-stage work as `docs/tasks/*.md` checklists (`[ ]` todo, `[~]` in pro
 done) — detailed enough to resume cold. Refine vague ideas with `/clarify`; decompose epics
 with `/breakdown` (definitions in `docs/commands/`, installed in `.claude/commands/`).
 
+To **automate** this loop, use the orchestration layer (`docs/orchestration/`): `/build-feature
+<task-file> [mode]` runs the **build-feature** workflow (spec → decompose → eval-first tests →
+implement → quality → verify → architecture/ADR → progress report → finalize), spawning one
+sub-agent per atomic instruction under the model-usage guideline (Opus orchestrates; Sonnet/Haiku
+work) and logging every agent to a per-run JSON ledger. `/orchestrate [workflow] [input] [mode]` is
+the generic, workflow-agnostic manager for that and any future workflow. Default mode `gate` honours
+every approval gate; `checkpoint`/`autonomous` trade oversight for throughput.
+
 ## Tech stack
 
 - **Python 3.12**, **uv** (deps/venv), **mise** (toolchain).
@@ -130,4 +138,11 @@ make eval      # run eval suites (deterministic scenarios now; Promptfoo + DeepE
 make lint      # ruff check + ruff format --check + mypy
 make format    # ruff format + ruff check --fix
 make match     # run the CLI against a role, e.g. make match ROLE="ROLE-01"
+make sync-claude  # install slash commands from docs/commands into .claude/commands
+```
+
+Orchestration (see `docs/orchestration/`):
+```
+/orchestrate [workflow] [input] [mode]   # generic manager; lists workflows if no args
+/build-feature <task-file> [mode]        # shortcut for /orchestrate build-feature
 ```
