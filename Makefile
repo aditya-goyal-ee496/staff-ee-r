@@ -7,9 +7,11 @@ help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-install:  ## Install dependencies into the project venv (uv sync)
-	uv sync
-	# Presidio requires the spaCy en_core_web_sm model for NER
+install:  ## Install dependencies (llm + nlp extras) into the project venv
+	# llm (DSPy reasoner) + nlp (Presidio PII scrubber) so the full CLI — incl.
+	# free-text `match-text` — works out of the box. Add parse/eval as needed.
+	uv sync --extra llm --extra nlp
+	# Presidio's NER engine requires the spaCy en_core_web_sm model
 	uv run python -m spacy download en_core_web_sm
 
 test:  ## Run unit + integration tests
