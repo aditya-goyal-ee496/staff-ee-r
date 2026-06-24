@@ -76,3 +76,6 @@ follow_imports = "skip"
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "integration: real-network/real-dependency tests (heavy lane; e.g. needs OPENROUTER_API_KEY)",
+]
