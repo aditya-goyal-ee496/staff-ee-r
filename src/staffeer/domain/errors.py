@@ -27,3 +27,11 @@ class FeedbackError(StaffeerError):
 
 class PIIScrubbingError(StaffeerError):
     """The PII scrubber failed; text must not reach an LLM unscrubbed (fail closed)."""
+
+
+class SemanticIndexError(StaffeerError):
+    """Backing store for the semantic index was unavailable during upsert or query."""
+
+
+class LLMReasonerError(StaffeerError):
+    """LLM provider was unreachable, timed out, or returned unparseable output."""

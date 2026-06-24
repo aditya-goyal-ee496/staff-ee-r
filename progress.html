@@ -92,10 +92,10 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~44%</div>
+      <div class="num">~46%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:44%"></span></div>
-      <div class="sub">48 of 108 tracked task items</div>
+      <div class="bar"><span style="width:46%"></span></div>
+      <div class="sub">50 of 108 tracked task items</div>
     </div>
     <div class="card">
       <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
@@ -103,9 +103,9 @@
       <div class="sub">I1 beach matcher live; I2 skill scoring complete</div>
     </div>
     <div class="card">
-      <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
+      <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
       <div class="lbl">Serial prerequisites done</div>
-      <div class="sub">S0 ✓ · C1 ✓ · C2 pending</div>
+      <div class="sub">S0 ✓ · C1 ✓ · C2 ✓</div>
     </div>
     <div class="card">
       <div class="num">✅</div>
@@ -161,17 +161,17 @@
     </ul></div>
   </details>
 
-  <details class="item" id="C2">
+  <details class="item" id="C2" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
-      <span class="title">C2 — Contracts wave 2 <small>00b-contracts.md · domain-informed ports (deferred)</small></span>
+      <span class="badge b-done">Done</span>
+      <span class="title">C2 — Contracts wave 2 <small>00b-contracts.md · domain-informed ports</small></span>
       <span class="dep">depends on: C1</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo"><code>SemanticIndex</code> port (<code>upsert</code>, <code>query(text,k)→[Hit]</code>) + <code>NullSemanticIndex</code></li>
-      <li class="t-todo"><code>LLMReasoner</code> port (<code>assess(...)→SoftAssessment</code>) + <code>NullLLMReasoner</code> (abstains)</li>
-      <li class="t-todo">Contract suites for both ports</li>
-      <li class="t-todo">Unblocks Tracks D &amp; E</li>
+      <li class="t-done"><code>SemanticIndex</code> port (<code>upsert</code>, <code>query(text,k)→[Hit]</code>) + <code>NullSemanticIndex</code></li>
+      <li class="t-done"><code>LLMReasoner</code> port (<code>assess(...)→SoftAssessment</code>) + <code>NullLLMReasoner</code> (abstains)</li>
+      <li class="t-done">Contract suites for both ports</li>
+      <li class="t-done">Unblocks Tracks D &amp; E</li>
     </ul></div>
   </details>
 
@@ -364,7 +364,7 @@ const NODES = [
   { id:'B',  label:'Track B · Data adapters', sub:'xlsx/docling/md', status:'done', layer:2, order:1 },
   { id:'C',  label:'Track C · PII',           sub:'Presidio',        status:'done', layer:2, order:2 },
   { id:'F',  label:'Track F · Evals',         sub:'golden harness',  status:'wip',  layer:2, order:3 },
-  { id:'C2', label:'C2 · Contracts w2',       sub:'semantic + LLM',  status:'todo', layer:2, order:4 },
+  { id:'C2', label:'C2 · Contracts w2',       sub:'semantic + LLM',  status:'done', layer:2, order:4 },
   { id:'I1', label:'I1 · Beach e2e',          sub:'first ship',      status:'done', layer:3, order:0 },
   { id:'D',  label:'Track D · Semantic',      sub:'Milvus Lite',     status:'todo', layer:3, order:3 },
   { id:'E',  label:'Track E · LLM',           sub:'DSPy/OpenRouter', status:'todo', layer:3, order:4 },

@@ -63,19 +63,126 @@ informed by the real scoring core). Lands while Track A is mid-flight — serial
 
 ### Acceptance criteria
 
-- [ ] `SemanticIndex` and `LLMReasoner` ports frozen with null objects that compose inertly.
-- [ ] A contract-test suite per port (`tests/contract/test_semantic_index.py`,
+- [x] `SemanticIndex` and `LLMReasoner` ports frozen with null objects that compose inertly.
+- [x] A contract-test suite per port (`tests/contract/test_semantic_index.py`,
       `test_reasoner.py`) — the LLM suite runs against a no-network **stub** reasoner — passed by
       the null object; Tracks D/E reuse it.
-- [ ] `make test`/`lint` green; Tracks D and E can now open.
+- [x] `make test`/`lint` green; Tracks D and E can now open.
 
 ### Tasks
 
-- [ ] **`SemanticIndex` port** (`ports/`) — `upsert(items)`, `query(text, k) -> [Hit]`; define
+- [x] **`SemanticIndex` port** (`ports/`) — `upsert(items)`, `query(text, k) -> [Hit]`; define
       the `Hit` shape. `NullSemanticIndex.query` → `[]` (→ `ScoreContribution(value=0)`).
-- [ ] **`LLMReasoner` port** (`ports/`) — `assess(role, candidate, evidence) -> SoftAssessment`
+- [x] **`LLMReasoner` port** (`ports/`) — `assess(role, candidate, evidence) -> SoftAssessment`
       (score + rationale + cited sources); define `Evidence` + `SoftAssessment`.
       `NullLLMReasoner` → **abstains** (zero contribution, no fabrication).
+
+## Spec — SemanticIndex port (C2)
+
+**Contract**
+```python
+from typing import Protocol, runtime_checkable
+from staffeer.domain.models import ValueObject
+
+class IndexItem(ValueObject):
+    """One unit of content to index (a scrubbed skill summary or profile excerpt)."""
+    id: str           # stable, unique key (consultant id + slice tag)
+    text: str         # PII-scrubbed text to embed
+    metadata: dict[str, str] = {}   # opaque pass-through (location, state, grade …)
+
+class Hit(ValueObject):
+    """One result returned by a semantic query."""
+    id: str           # matches IndexItem.id
+    score: float      # cosine similarity in [0.0, 1.0]
+    text: str         # the stored text that was matched
+    metadata: dict[str, str] = {}
+
+@runtime_checkable
+class SemanticIndex(Protocol):
+    def upsert(self, items: list[IndexItem]) -> None:
+        """Persist or update `items`; idempotent on `id`."""
+        ...
+    def query(self, text: str, k: int) -> list[Hit]:
+        """Return up to `k` nearest neighbours for `text`; empty list when index is empty."""
+        ...
+```
+
+**Invariants**
+- `query` never raises on an empty index; it returns `[]`.
+- `query` never returns more than `k` results.
+- `Hit.score` is in `[0.0, 1.0]`.
+- `upsert` is idempotent: calling it twice with the same `id` updates the stored entry, no duplicate.
+- Text reaching `upsert` must already be PII-scrubbed (the caller's responsibility, enforced by `build_matcher` wiring — `PIIScrubber` is required when a real `SemanticIndex` is wired).
+- `NullSemanticIndex.query` always returns `[]`, yielding `ScoreContribution(value=0)` downstream.
+
+**Acceptance criteria**
+- [x] `NullSemanticIndex` passes `tests/contract/test_semantic_index.py` without network I/O.
+- [x] `query` on an empty `NullSemanticIndex` returns `[]`, not `None`.
+- [x] `upsert` followed by `query` on a real adapter returns at least one `Hit` with `score` in `[0.0, 1.0]`.
+- [x] `Hit.id` returned by `query` matches an `IndexItem.id` previously passed to `upsert`.
+- [x] `query` with `k=1` returns at most one result.
+- [x] `IndexItem` with a duplicate `id` can be upserted without error (idempotency).
+- [x] Malformed `text` (empty string) to `upsert` is accepted without raising.
+
+**Error mapping**
+- Backing-store unavailable during `upsert` → `SemanticIndexError(StaffeerError)`
+- Backing-store unavailable during `query` → `SemanticIndexError(StaffeerError)`
+
+**Contract test:** `tests/contract/test_semantic_index.py` — parametrised over `NullSemanticIndex`; Track D's Milvus adapter reuses the same suite.
+
+---
+
+## Spec — LLMReasoner port (C2)
+
+**Contract**
+```python
+from typing import Protocol, runtime_checkable
+from staffeer.domain.models import Consultant, Role, ValueObject
+
+class Evidence(ValueObject):
+    """Structured, PII-scrubbed inputs the reasoner may draw on to justify a match."""
+    skill_score: float          # deterministic coverage from Track A (0..1)
+    semantic_hits: tuple[str, ...] = ()   # top semantic hit texts from SemanticIndex
+    feedback_notes: tuple[str, ...] = ()  # scrubbed feedback snippets
+    provenance: str = ""        # supply-state context (beach / roll-off / new joiner)
+
+class SoftAssessment(ValueObject):
+    """One LLM-produced soft judgement for a (role, consultant) pair."""
+    score: float                # 0.0 (abstain / no signal) to 1.0 (strong fit)
+    rationale: str              # human-readable; MUST reference cited_sources
+    cited_sources: tuple[str, ...] = ()   # which Evidence fields influenced the reasoning
+    abstained: bool = False     # True when the reasoner produced no signal (null or failure)
+
+@runtime_checkable
+class LLMReasoner(Protocol):
+    def assess(self, role: Role, candidate: Consultant, evidence: Evidence) -> SoftAssessment:
+        """Return a soft assessment; abstain (score=0, abstained=True) rather than fabricate."""
+        ...
+```
+
+**Invariants**
+- `NullLLMReasoner.assess` always returns `SoftAssessment(score=0.0, rationale="", abstained=True)` — zero contribution, no fabrication.
+- `SoftAssessment.score` is in `[0.0, 1.0]`.
+- A real reasoner must never receive un-scrubbed PII; `Evidence` fields are scrubbed before construction (caller's responsibility, enforced by `build_matcher` wiring).
+- When `abstained=True`, `cited_sources` must be empty and `score` must be `0.0`.
+- A non-abstaining `SoftAssessment` (`abstained=False`) must have a non-empty `rationale`.
+
+**Acceptance criteria**
+- [x] `NullLLMReasoner` passes `tests/contract/test_reasoner.py` with no network I/O.
+- [x] `NullLLMReasoner.assess` returns `SoftAssessment(score=0.0, abstained=True)`.
+- [x] A stub reasoner (no-network) in the contract suite returns a `SoftAssessment` with `score` in `[0.0, 1.0]`.
+- [x] An abstaining response has empty `cited_sources` and `score == 0.0`.
+- [x] A non-abstaining response has a non-empty `rationale`.
+- [x] `SoftAssessment` is a `ValueObject` (frozen, equality-by-value) and carries no infrastructure types.
+- [x] `build_matcher` with a real `LLMReasoner` wired but no real `PIIScrubber` raises at construction time (fail-closed).
+
+**Error mapping**
+- LLM provider unreachable or timeout → `LLMReasonerError(StaffeerError)` (adapter maps; domain never sees HTTP errors)
+- LLM returns malformed or unparseable output → `LLMReasonerError(StaffeerError)`
+
+**Contract test:** `tests/contract/test_reasoner.py` — runs against `NullLLMReasoner` and a `StubLLMReasoner` (hard-coded deterministic response, no network); Track E's DSPy adapter reuses the same suite.
+
+---
 
 ## The two anti-serialization rules (also in `parallelization-guide.md`)
 

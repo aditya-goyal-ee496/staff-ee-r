@@ -24,6 +24,8 @@ from staffeer.domain.matcher import Matcher
 from staffeer.ports.feedback import FeedbackStore
 from staffeer.ports.pii import PIIScrubber
 from staffeer.ports.profiles import ProfileParser
+from staffeer.ports.reasoner import LLMReasoner, NullLLMReasoner
+from staffeer.ports.semantic_index import NullSemanticIndex, SemanticIndex
 from staffeer.ports.supply_demand import SupplyDemandSource
 
 
@@ -46,6 +48,8 @@ def build_matcher(config: StaffeerConfig) -> Matcher:
         pii=pii,
         include_states=config.include_states,
         weights=config.weights,
+        semantic_index=_build_semantic_index(config),
+        reasoner=_build_reasoner(config),
     )
 
 
@@ -75,3 +79,13 @@ def _build_pii_scrubber(config: StaffeerConfig) -> PIIScrubber:
     if config.llm_enabled or config.semantic_enabled:
         return PresidioPIIScrubber()
     return NullPIIScrubber()
+
+
+def _build_semantic_index(config: StaffeerConfig) -> SemanticIndex:
+    """Return the null semantic index; a real Milvus adapter slots in here later."""
+    return NullSemanticIndex()
+
+
+def _build_reasoner(config: StaffeerConfig) -> LLMReasoner:
+    """Return the null reasoner; a real DSPy adapter slots in here later."""
+    return NullLLMReasoner()
