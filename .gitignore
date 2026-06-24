@@ -10,3 +10,6 @@ planning/raw-data
 .mypy_cache/
 __pycache__/
 *.py[cod]
+
+# LikeC4 production build output (created by `make arch`)
+dist/

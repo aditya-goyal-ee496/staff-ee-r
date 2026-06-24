@@ -28,8 +28,14 @@ format:  ## Auto-format and apply safe lint fixes
 match:  ## Run the matcher for a role, e.g. make match ROLE="backend engineer"
 	uv run staffeer match "$(ROLE)"
 
-arch:  ## Open the LikeC4 diagram viewer (requires Node; wraps `npx likec4 start`)
-	npx likec4 start
+arch:  ## Build + serve the LikeC4 diagram viewer (requires Node; build then preview)
+	# Uses `build` + `preview` (production bundle) instead of `start`: the dev server's
+	# rolldown-vite transform pipeline throws "SyntaxError: Unexpected token '('" on this
+	# toolchain (reproduced on likec4 1.56 + 1.58), leaving a blank page. `preview` only
+	# serves a prior production build, so `build` (into dist/) must run first; it then
+	# prints a clickable localhost URL.
+	npx likec4 build
+	npx likec4 preview
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache **/__pycache__

@@ -6,7 +6,7 @@ model {
   staffing-manager = actor 'Staffing Manager' {
     description 'Enters an open role, reviews the ranked shortlist, makes the final call.'
     metadata {
-      source 'README.md (problem statement); docs/architecture/L1-system-context.md'
+      sources 'README.md (problem statement); docs/architecture/L1-system-context.md'
     }
   }
   staffing-forum = actor 'Staffing Forum' {
@@ -43,7 +43,7 @@ model {
     technology 'Python 3.12'
     description 'Ranks and explains consultant fit for an open role; advises, never decides.'
     metadata {
-      source 'CLAUDE.md; docs/conventions.md; docs/adr/001-hexagonal-eval-first-architecture.md'
+      sources 'CLAUDE.md; docs/conventions.md; docs/adr/001-hexagonal-eval-first-architecture.md'
     }
 
     cli = container 'CLI' {
