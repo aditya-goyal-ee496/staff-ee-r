@@ -9,6 +9,8 @@ help:  ## Show available targets
 
 install:  ## Install dependencies into the project venv (uv sync)
 	uv sync
+	# Presidio requires the spaCy en_core_web_sm model for NER
+	uv run python -m spacy download en_core_web_sm
 
 test:  ## Run unit + integration tests
 	uv run pytest

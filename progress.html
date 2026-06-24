@@ -92,10 +92,10 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~41%</div>
+      <div class="num">~44%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:41%"></span></div>
-      <div class="sub">44 of 108 tracked task items</div>
+      <div class="bar"><span style="width:44%"></span></div>
+      <div class="sub">48 of 108 tracked task items</div>
     </div>
     <div class="card">
       <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
@@ -193,26 +193,26 @@
 
   <details class="item" id="B">
     <summary>
-      <span class="badge b-wip">Partial</span>
+      <span class="badge b-done">Done</span>
       <span class="title">Track B — Data adapters <small>slices 01 + 04 · behind ports</small></span>
       <span class="dep">depends on: C1</span>
     </summary>
     <div class="tasks"><ul>
       <li class="t-done">xlsx supply/demand loader (<code>adapters/xlsx_supply_demand.py</code>) + integration test</li>
-      <li class="t-todo">Docling profile parser (<code>adapters/docling_profiles.py</code>)</li>
-      <li class="t-todo">Markdown feedback store (<code>adapters/markdown_feedback.py</code>)</li>
+      <li class="t-done">Docling profile parser (<code>adapters/docling_profiles.py</code>)</li>
+      <li class="t-done">Markdown feedback store (<code>adapters/markdown_feedback.py</code>)</li>
     </ul></div>
   </details>
 
   <details class="item" id="C">
     <summary>
-      <span class="badge b-todo">Not started</span>
+      <span class="badge b-done">Done</span>
       <span class="title">Track C — Security / PII <small>slice 04 · Presidio + spaCy</small></span>
       <span class="dep">depends on: C1</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo">Presidio PII scrubber (<code>adapters/presidio_pii.py</code>) + security negative test</li>
-      <li class="t-todo">Fail-closed wiring: LLM/semantic path requires a real scrubber</li>
+      <li class="t-done">Presidio PII scrubber (<code>adapters/presidio_pii.py</code>) + security negative test</li>
+      <li class="t-done">Fail-closed wiring: LLM/semantic path requires a real scrubber</li>
     </ul></div>
   </details>
 
@@ -361,8 +361,8 @@ const NODES = [
   { id:'S0', label:'S0 · CI baseline',        sub:'scaffold + CI',   status:'done', layer:0, order:0 },
   { id:'C1', label:'C1 · Contracts w1',       sub:'ports + models',  status:'done', layer:1, order:0 },
   { id:'A',  label:'Track A · Domain core',   sub:'slices 02+03',    status:'done', layer:2, order:0 },
-  { id:'B',  label:'Track B · Data adapters', sub:'xlsx/docling/md', status:'wip',  layer:2, order:1 },
-  { id:'C',  label:'Track C · PII',           sub:'Presidio',        status:'todo', layer:2, order:2 },
+  { id:'B',  label:'Track B · Data adapters', sub:'xlsx/docling/md', status:'done', layer:2, order:1 },
+  { id:'C',  label:'Track C · PII',           sub:'Presidio',        status:'done', layer:2, order:2 },
   { id:'F',  label:'Track F · Evals',         sub:'golden harness',  status:'wip',  layer:2, order:3 },
   { id:'C2', label:'C2 · Contracts w2',       sub:'semantic + LLM',  status:'todo', layer:2, order:4 },
   { id:'I1', label:'I1 · Beach e2e',          sub:'first ship',      status:'done', layer:3, order:0 },

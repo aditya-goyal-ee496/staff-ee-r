@@ -50,6 +50,14 @@ files = ["src"]
 module = ["openpyxl.*"]
 ignore_missing_imports = true
 
+# Presidio + Docling are optional heavy extras ([nlp]/[parse]); CI's fast lane runs without
+# them. follow_imports=skip treats them as `Any` whether or not the extra is installed, so the
+# adapters type-check identically in both environments (no install-dependent inline ignores).
+[[tool.mypy.overrides]]
+module = ["presidio_analyzer.*", "presidio_anonymizer.*", "docling.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

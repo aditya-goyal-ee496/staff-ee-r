@@ -18,7 +18,9 @@ boundaries that matter for how the code is organized and tested.
 ## Internal boundaries (hexagonal)
 
 - **Domain core (`src/staffeer/domain/`)** — pure, deterministic. Models, hard-constraint
-  filtering, scoring, ranking, explanation assembly. No I/O, no third-party clients.
+  filtering, scoring, ranking, explanation assembly, and ingestion (an `IngestionService` that
+  composes the profile/feedback/PII ports and makes PII-scrubbing structurally mandatory). No
+  I/O, no third-party clients.
 - **Ports (`src/staffeer/ports/`)** — the interfaces the core depends on: `ProfileParser`,
   `FeedbackStore`, `SupplyDemandSource`, `SemanticIndex`, `LLMReasoner`, `PIIScrubber`.
 - **Driven adapters (`src/staffeer/adapters/`)** — concrete implementations:
@@ -48,7 +50,7 @@ C4Container
     System_Boundary(s, "Staffeer") {
         Container(cli, "CLI", "Python / Typer", "Driving adapter: takes a role, prints ranked shortlist + rationale")
         Container(evals, "Eval Harness", "Promptfoo + DeepEval", "First consumer: scenario + metric evaluation")
-        Container(core, "Domain Core", "Python / Pydantic", "Filter, score, rank, explain — pure & deterministic")
+        Container(core, "Domain Core", "Python / Pydantic", "Filter, score, rank, explain, ingest (PII-scrub boundary) — pure & deterministic")
         Container(ports, "Ports", "Python Protocols", "ProfileParser, FeedbackStore, SupplyDemandSource, SemanticIndex, LLMReasoner, PIIScrubber")
         Container(adapters, "Driven Adapters", "Python", "Docling, xlsx, markdown, Presidio, Milvus, DSPy")
         ContainerDb(index, "Semantic Index", "Milvus Lite", "Embeddings over skills/profiles")

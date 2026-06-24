@@ -47,6 +47,8 @@ class StaffeerConfig(BaseModel):
     openrouter_api_key: str | None = None
     semantic_enabled: bool = False
     llm_enabled: bool = False
+    profiles_enabled: bool = False
+    feedback_dir: str | None = None
     include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
     weights: dict[str, float] = Field(default_factory=dict)
 
@@ -54,7 +56,11 @@ class StaffeerConfig(BaseModel):
     def from_env(cls) -> StaffeerConfig:
         """Build config from env secrets, leaving capabilities at their defaults."""
         settings = Settings.from_env()
+        profiles_enabled_str = os.environ.get("STAFFEER_PROFILES", "")
+        profiles_enabled = profiles_enabled_str.strip().lower() in ("1", "true", "yes")
         return cls(
             data_path=settings.data_path,
             openrouter_api_key=settings.openrouter_api_key,
+            profiles_enabled=profiles_enabled,
+            feedback_dir=os.environ.get("STAFFEER_FEEDBACK_DIR"),
         )
