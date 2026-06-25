@@ -92,15 +92,15 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~75%</div>
+      <div class="num">~80%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:75%"></span></div>
-      <div class="sub">126 of 167 tracked task items</div>
+      <div class="bar"><span style="width:80%"></span></div>
+      <div class="sub">134 of 167 tracked task items</div>
     </div>
     <div class="card">
-      <div class="num">4<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
+      <div class="num">5<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
       <div class="lbl">Integration slices shipped</div>
-      <div class="sub">I1 beach · I2 skill scoring · I3 semantic blend · I4 LLM soft score + free-text</div>
+      <div class="sub">I1 beach · I2 skill scoring · I3 semantic blend · I4 LLM soft score + free-text · I5 supply expansion</div>
     </div>
     <div class="card">
       <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
@@ -314,16 +314,16 @@
     </ul></div>
   </details>
 
-  <details class="item" id="I5">
+  <details class="item" id="I5" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
+      <span class="badge b-done">Done</span>
       <span class="title">I5 — Supply expansion <small>slice 08 · roll-offs &amp; new joiners</small></span>
       <span class="dep">depends on: I1 + (I2 or I4)</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo"><code>--include rolling_off,new_joiner</code>; availability by true free date + buffer</li>
-      <li class="t-todo">Roll-off confidence surfaced; unverified new-joiner skills weighted + flagged</li>
-      <li class="t-todo">Model fields already pre-baked in C1 → no breaking change needed</li>
+      <li class="t-done"><code>--include rolling_off,new_joiner</code>; availability by true free date + buffer</li>
+      <li class="t-done">Roll-off confidence surfaced; unverified new-joiner skills weighted + flagged</li>
+      <li class="t-done">Model fields already pre-baked in C1 → no breaking change needed</li>
     </ul></div>
   </details>
 
@@ -375,7 +375,7 @@ const NODES = [
   { id:'I2', label:'I2 · Skill scoring',      sub:'ranked output',   status:'done', layer:4, order:0 },
   { id:'I3', label:'I3 · Semantic blend',     sub:'--semantic',      status:'done', layer:5, order:0 },
   { id:'I4', label:'I4 · LLM soft score',     sub:'free-text role',  status:'done', layer:5, order:1 },
-  { id:'I5', label:'I5 · Supply expansion',   sub:'roll-offs',       status:'todo', layer:5, order:2 },
+  { id:'I5', label:'I5 · Supply expansion',   sub:'roll-offs',       status:'done', layer:5, order:2 },
   { id:'I6', label:'I6 · Relevance evals',    sub:'LLM-as-judge',    status:'todo', layer:6, order:0 },
   { id:'I7', label:'I7 · Optional',           sub:'team/web UI',     status:'todo', layer:6, order:1 },
 ];
