@@ -78,6 +78,8 @@ class StaffeerConfig(BaseModel):
     feedback_dir: str | None = None
     include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
     weights: dict[str, float] = Field(default_factory=dict)
+    milvus_path: str | None = None
+    embedding_model: str = "all-MiniLM-L6-v2"
 
     @classmethod
     def from_env(cls) -> StaffeerConfig:
@@ -90,4 +92,6 @@ class StaffeerConfig(BaseModel):
             openrouter_api_key=settings.openrouter_api_key,
             profiles_enabled=profiles_enabled,
             feedback_dir=os.environ.get("STAFFEER_FEEDBACK_DIR"),
+            milvus_path=os.environ.get("STAFFEER_MILVUS_PATH"),
+            embedding_model=os.environ.get("STAFFEER_EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
         )

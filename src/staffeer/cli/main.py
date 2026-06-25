@@ -12,11 +12,12 @@ import typer
 
 from staffeer.composition import build_matcher, build_role_parser
 from staffeer.config import StaffeerConfig, load_env_file
-from staffeer.domain.errors import SupplyDemandError
+from staffeer.domain.errors import StaffeerError, SupplyDemandError
 from staffeer.domain.explain import SKILLS_SOURCE
-from staffeer.domain.matcher import Matcher
-from staffeer.domain.models import EligibilityResult, Match, Shortlist
+from staffeer.domain.matcher import Matcher, _build_consultant_summary
+from staffeer.domain.models import Consultant, EligibilityResult, Match, Shortlist
 from staffeer.ports.reasoner import LLMReasonerError
+from staffeer.ports.semantic_index import IndexItem
 
 app = typer.Typer(
     no_args_is_help=True, help="Staffeer — ranked, explainable consultant shortlists."
@@ -33,6 +34,41 @@ def _matcher(data: str | None) -> Matcher:
     if data:
         config = config.model_copy(update={"data_path": data})
     return build_matcher(config)
+
+
+def _upsert_consultant(matcher: Matcher, consultant: Consultant) -> None:
+    """Scrub, build an IndexItem, and upsert one consultant into the semantic index."""
+    scrubbed = matcher.pii.scrub(_build_consultant_summary(consultant)).text
+    item = IndexItem(
+        id=consultant.id,
+        text=scrubbed,
+        namespace="skills",
+        metadata={"location": consultant.location, "state": str(consultant.state)},
+    )
+    matcher.semantic_index.upsert(item)
+    typer.echo(f"indexed: {consultant.id}")
+
+
+@app.command()
+def index(data: str | None = _DATA_OPTION) -> None:
+    """(Re)build the semantic index from supply data; idempotent."""
+    config = StaffeerConfig.from_env()
+    if data:
+        config = config.model_copy(update={"data_path": data})
+    if not config.milvus_path:
+        typer.echo("error: STAFFEER_MILVUS_PATH is required to build the index.", err=True)
+        raise typer.Exit(code=1)
+    try:
+        matcher = build_matcher(config.model_copy(update={"semantic_enabled": True}))
+        consultants = list(matcher.supply.consultants(*matcher.include_states))
+        if not consultants:
+            typer.echo("warning: no beach consultants found; index is empty.", err=True)
+        for consultant in consultants:
+            _upsert_consultant(matcher, consultant)
+    except StaffeerError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo("Index built.")
 
 
 @app.command()

@@ -13,23 +13,31 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 
 from staffeer.domain.eligibility import screen_consultants
-from staffeer.domain.explain import constraint_factors, skill_factor, soft_factor
+from staffeer.domain.explain import constraint_factors, semantic_factor, skill_factor, soft_factor
 from staffeer.domain.models import (
     Consultant,
     EligibilityResult,
     Explanation,
     Match,
     Role,
+    ScoreContribution,
     Shortlist,
+    SkillScore,
     SupplyState,
 )
-from staffeer.domain.ranking import assemble_match, rank, skill_contribution, soft_contribution
+from staffeer.domain.ranking import (
+    assemble_match,
+    rank,
+    semantic_contribution,
+    skill_contribution,
+    soft_contribution,
+)
 from staffeer.domain.scoring import skill_coverage
 from staffeer.ports.feedback import FeedbackStore
 from staffeer.ports.pii import PIIScrubber
 from staffeer.ports.profiles import ProfileParser
-from staffeer.ports.reasoner import LLMReasoner
-from staffeer.ports.semantic_index import SemanticIndex
+from staffeer.ports.reasoner import LLMReasoner, SoftAssessment
+from staffeer.ports.semantic_index import Hit, SemanticIndex
 from staffeer.ports.supply_demand import SupplyDemandSource
 
 
@@ -56,17 +64,67 @@ class Matcher:
     def _match_for(self, result: EligibilityResult, role: Role) -> Match:
         """Score and explain one eligible consultant against `role`."""
         coverage = skill_coverage(role, result.consultant)
+        scrubbed_role, scrubbed_consultant = self._scrub_inputs(role, result.consultant)
+        assessment = self._assess(scrubbed_consultant, scrubbed_role)
+        hits = self._query_semantic(scrubbed_role)
+        return assemble_match(
+            result.consultant,
+            _build_contributions(coverage, assessment, hits, self.weights),
+            _build_explanation(result, coverage, assessment, hits),
+        )
+
+    def _scrub_inputs(self, role: Role, consultant: Consultant) -> tuple[str, str]:
+        """Build and PII-scrub the role description and consultant summary."""
         scrubbed_role = self.pii.scrub(_build_role_description(role)).text
-        scrubbed_consultant = self.pii.scrub(_build_consultant_summary(result.consultant)).text
-        assessment = self.reasoner.assess(
-            consultant_summary=scrubbed_consultant, role_description=scrubbed_role
+        scrubbed_consultant = self.pii.scrub(_build_consultant_summary(consultant)).text
+        return scrubbed_role, scrubbed_consultant
+
+    def _assess(self, scrubbed_consultant: str, scrubbed_role: str) -> SoftAssessment:
+        """Call the LLM reasoner; returns an abstaining assessment if the port fails."""
+        try:
+            return self.reasoner.assess(
+                consultant_summary=scrubbed_consultant, role_description=scrubbed_role
+            )
+        except Exception:  # noqa: BLE001
+            return SoftAssessment(score=0.0, confidence=0.0, abstained=True)
+
+    def _query_semantic(self, scrubbed_role_text: str) -> list[Hit]:
+        """Query the semantic index; returns empty list if the index is unavailable."""
+        try:
+            return self.semantic_index.query(scrubbed_role_text, namespace="skills", top_k=5)
+        except Exception:  # noqa: BLE001
+            return []
+
+
+def _build_contributions(
+    coverage: SkillScore,
+    assessment: SoftAssessment,
+    hits: list[Hit],
+    weights: Mapping[str, float],
+) -> tuple[ScoreContribution, ...]:
+    """Assemble the three score contributions from their respective port results."""
+    return (
+        skill_contribution(coverage, weights.get("skills", 1.0)),
+        soft_contribution(assessment, weights.get("soft_llm", 1.0)),
+        semantic_contribution(hits, weights.get("semantic", 1.0)),
+    )
+
+
+def _build_explanation(
+    result: EligibilityResult,
+    coverage: SkillScore,
+    assessment: SoftAssessment,
+    hits: list[Hit],
+) -> Explanation:
+    """Assemble all explanation factors for one consultant match."""
+    return Explanation(
+        factors=(
+            *constraint_factors(result),
+            skill_factor(coverage),
+            soft_factor(assessment),
+            semantic_factor(hits),
         )
-        skill_contrib = skill_contribution(coverage, self.weights.get("skills", 1.0))
-        soft_contrib = soft_contribution(assessment, self.weights.get("soft_llm", 1.0))
-        explanation = Explanation(
-            factors=(*constraint_factors(result), skill_factor(coverage), soft_factor(assessment))
-        )
-        return assemble_match(result.consultant, (skill_contrib, soft_contrib), explanation)
+    )
 
 
 def _build_consultant_summary(consultant: Consultant) -> str:

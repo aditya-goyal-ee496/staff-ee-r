@@ -92,15 +92,15 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~48%</div>
+      <div class="num">~50%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:48%"></span></div>
-      <div class="sub">52 of 108 tracked task items</div>
+      <div class="bar"><span style="width:50%"></span></div>
+      <div class="sub">54 of 108 tracked task items</div>
     </div>
     <div class="card">
-      <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
+      <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
       <div class="lbl">Integration slices shipped</div>
-      <div class="sub">I1 beach matcher live; I2 skill scoring complete; Track E ready</div>
+      <div class="sub">I1 beach matcher live; I2 skill scoring complete; I3 semantic blend complete</div>
     </div>
     <div class="card">
       <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
@@ -284,16 +284,16 @@
     </ul></div>
   </details>
 
-  <details class="item" id="I3">
+  <details class="item" id="I3" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
+      <span class="badge b-done">Done</span>
       <span class="title">I3 — Semantic blend <small>slice 05 · Null→Milvus, <code>--semantic</code></small></span>
       <span class="dep">depends on: I2, D, C</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo">Swap <code>NullSemanticIndex</code>→Milvus; add semantic <code>ScoreContribution</code></li>
-      <li class="t-todo"><code>make index</code> (reproducible, idempotent); <code>--semantic</code> flag</li>
-      <li class="t-todo">Blocked on: C2 + Track C (scrubbed embeddings) + Track D</li>
+      <li class="t-done">Swap <code>NullSemanticIndex</code>→Milvus; add semantic <code>ScoreContribution</code></li>
+      <li class="t-done"><code>make index</code> (reproducible, idempotent); <code>--semantic</code> flag</li>
+      <li class="t-done">MilvusSemanticIndex adapter implemented; composition wiring complete; ADR 005 documented</li>
     </ul></div>
   </details>
 
@@ -369,7 +369,7 @@ const NODES = [
   { id:'D',  label:'Track D · Semantic',      sub:'Milvus Lite',     status:'todo', layer:3, order:3 },
   { id:'E',  label:'Track E · LLM',           sub:'DSPy/OpenRouter', status:'done', layer:3, order:4 },
   { id:'I2', label:'I2 · Skill scoring',      sub:'ranked output',   status:'done', layer:4, order:0 },
-  { id:'I3', label:'I3 · Semantic blend',     sub:'--semantic',      status:'todo', layer:5, order:0 },
+  { id:'I3', label:'I3 · Semantic blend',     sub:'--semantic',      status:'done', layer:5, order:0 },
   { id:'I4', label:'I4 · LLM soft score',     sub:'free-text role',  status:'todo', layer:5, order:1 },
   { id:'I5', label:'I5 · Supply expansion',   sub:'roll-offs',       status:'todo', layer:5, order:2 },
   { id:'I6', label:'I6 · Relevance evals',    sub:'LLM-as-judge',    status:'todo', layer:6, order:0 },

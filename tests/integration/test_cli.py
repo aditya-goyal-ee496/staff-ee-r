@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
 from staffeer.cli.main import app
+from staffeer.domain.errors import StaffeerError
 
 runner = CliRunner()
 
@@ -98,3 +100,30 @@ def test_match_command_shows_adjacent_skill_substitution(
     path = workbook_factory(roles=[_KOTLIN_ROLE], beach=[_ADJACENT_CONSULTANT])
     result = runner.invoke(app, ["match", "ROLE-4", "--data", str(path)])
     assert "1 adjacent" in result.stdout
+
+
+def test_index_command_warns_when_supply_has_no_beach_consultants(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """When the workbook has no beach supply the index command warns the operator on stderr."""
+    path = workbook_factory()  # no beach rows
+    mock_matcher = MagicMock()
+    mock_matcher.supply.consultants.return_value = []
+    mock_matcher.include_states = ()
+    with patch("staffeer.cli.main.build_matcher", return_value=mock_matcher):
+        result = runner.invoke(
+            app, ["index", "--data", str(path)], env={"STAFFEER_MILVUS_PATH": "/tmp/test.db"}
+        )
+    assert "no beach consultants" in result.output
+
+
+def test_index_command_exits_nonzero_when_build_matcher_raises_staffeer_error(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """A StaffeerError from build_matcher (e.g. no PII scrubber) exits with code 1."""
+    path = workbook_factory()
+    with patch("staffeer.cli.main.build_matcher", side_effect=StaffeerError("fail closed")):
+        result = runner.invoke(
+            app, ["index", "--data", str(path)], env={"STAFFEER_MILVUS_PATH": "/tmp/test.db"}
+        )
+    assert result.exit_code == 1

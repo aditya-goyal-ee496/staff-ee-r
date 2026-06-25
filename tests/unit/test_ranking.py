@@ -3,8 +3,15 @@
 from __future__ import annotations
 
 from staffeer.domain.models import Consultant, Match, ScoreContribution, SkillScore
-from staffeer.domain.ranking import assemble_match, rank, skill_contribution, soft_contribution
+from staffeer.domain.ranking import (
+    assemble_match,
+    rank,
+    semantic_contribution,
+    skill_contribution,
+    soft_contribution,
+)
 from staffeer.ports.reasoner import SoftAssessment
+from staffeer.ports.semantic_index import Hit
 
 
 def _consultant(consultant_id: str, name: str) -> Consultant:
@@ -70,3 +77,42 @@ def test_soft_contribution_abstaining_assessment_yields_zero_value() -> None:
 def test_soft_contribution_abstaining_assessment_yields_empty_detail() -> None:
     contribution = soft_contribution(_soft_assessment(0.0, "", abstained=True))
     assert contribution.detail == ""
+
+
+# ---------------------------------------------------------------------------
+# semantic_contribution tests (05-12)
+# ---------------------------------------------------------------------------
+
+
+def test_semantic_contribution_no_hits_yields_value_zero() -> None:
+    """AAA: no hits -> value 0.0."""
+    # Arrange
+    hits: list[Hit] = []
+    # Act
+    contribution = semantic_contribution(hits)
+    # Assert
+    assert contribution.value == 0.0
+
+
+def test_semantic_contribution_max_hit_score_wins() -> None:
+    """AAA: max hit score is used, not first or average."""
+    # Arrange
+    hits = [
+        Hit(id="C-01", score=0.6, text="python django"),
+        Hit(id="C-02", score=0.9, text="python web"),
+        Hit(id="C-03", score=0.3, text="java backend"),
+    ]
+    # Act
+    contribution = semantic_contribution(hits)
+    # Assert
+    assert contribution.value == 0.9
+
+
+def test_semantic_contribution_source_is_semantic() -> None:
+    """AAA: contribution source label is 'semantic'."""
+    # Arrange
+    hits = [Hit(id="C-01", score=0.7, text="python")]
+    # Act
+    contribution = semantic_contribution(hits)
+    # Assert
+    assert contribution.source == "semantic"

@@ -96,7 +96,18 @@ def _build_pii_scrubber(config: StaffeerConfig) -> PIIScrubber:
 
 
 def _build_semantic_index(config: StaffeerConfig) -> SemanticIndex:
-    """Return the null semantic index; a real Milvus adapter slots in here later."""
+    """Wire semantic index: MilvusSemanticIndex when enabled + path set; else null.
+
+    Lazily imports MilvusSemanticIndex (mirrors DspyOpenRouterReasoner pattern)
+    so composition.py remains import-clean without sentence_transformers/pymilvus.
+    """
+    if config.semantic_enabled and config.milvus_path:
+        # Lazy import: composition.py must remain import-clean without milvus/transformers.
+        from staffeer.adapters.milvus_index import MilvusSemanticIndex  # noqa: PLC0415
+
+        return MilvusSemanticIndex(db_path=config.milvus_path, model_name=config.embedding_model)
+    if config.semantic_enabled and not config.milvus_path:
+        _log.warning("semantic_enabled_but_no_milvus_path_fallback_to_null")
     return NullSemanticIndex()
 
 

@@ -1,8 +1,8 @@
 """Contract suite for the `SemanticIndex` port (spec: docs/tasks/00b-contracts.md, C2-02).
 
 Seven one-assertion tests verifying the structural invariants that every SemanticIndex
-implementation must satisfy.  Exercised against NullSemanticIndex so the suite runs with
-no network I/O.  Tests that touch real Milvus belong in tests/integration/.
+implementation must satisfy.  Exercised against NullSemanticIndex (always) and
+MilvusSemanticIndex (when sentence_transformers + pymilvus are installed).
 
 AAA layout — Arrange / Act / Assert — one assertion per test.
 """
@@ -18,12 +18,32 @@ from staffeer.ports.semantic_index import (
 )
 
 
-@pytest.fixture
-def index() -> SemanticIndex:
+def _make_null() -> SemanticIndex:
     return NullSemanticIndex()
 
 
-# T1 — NullSemanticIndex satisfies the SemanticIndex protocol
+def _make_milvus(tmp_path_factory: pytest.TempPathFactory) -> SemanticIndex:
+    pytest.importorskip("sentence_transformers")
+    pytest.importorskip("pymilvus")
+    from staffeer.adapters.milvus_index import MilvusSemanticIndex  # noqa: PLC0415
+
+    db_path = str(tmp_path_factory.mktemp("milvus_contract") / "contract.db")
+    return MilvusSemanticIndex(db_path=db_path)
+
+
+@pytest.fixture(
+    params=["null", "milvus"],
+    ids=["null", "milvus"],
+)
+def index(
+    request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory
+) -> SemanticIndex:
+    if request.param == "null":
+        return _make_null()
+    return _make_milvus(tmp_path_factory)
+
+
+# T1 — implementation satisfies the SemanticIndex protocol
 def test_implementation_satisfies_the_protocol(index: SemanticIndex) -> None:
     assert isinstance(index, SemanticIndex)
 
