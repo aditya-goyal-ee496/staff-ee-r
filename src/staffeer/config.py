@@ -22,6 +22,8 @@ from staffeer.domain.models import SupplyState
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 # The demand-supply workbook bundled under planning/raw-data, used when $STAFFEER_DATA is unset.
 DEFAULT_DATA_FILE = _REPO_ROOT / "planning" / "raw-data" / "demand-supply.xlsx"
+# The profiles directory bundled under planning/raw-data, used when $STAFFEER_PROFILES_DIR is unset.
+DEFAULT_PROFILES_DIR = _REPO_ROOT / "planning" / "raw-data" / "profiles"
 # The local dotenv loaded for developer convenience by the CLI entry point.
 DEFAULT_ENV_FILE = _REPO_ROOT / ".env"
 
@@ -42,6 +44,15 @@ def _resolve_data_path() -> str | None:
     if configured:
         return configured
     return str(DEFAULT_DATA_FILE) if DEFAULT_DATA_FILE.is_file() else None
+
+
+def _resolve_profiles_dir() -> str | None:
+    """The profiles directory from `$STAFFEER_PROFILES_DIR`, else the bundled profiles dir if
+    present."""
+    configured = os.environ.get("STAFFEER_PROFILES_DIR")
+    if configured:
+        return configured
+    return str(DEFAULT_PROFILES_DIR) if DEFAULT_PROFILES_DIR.is_dir() else None
 
 
 class Settings(BaseModel):
@@ -76,6 +87,7 @@ class StaffeerConfig(BaseModel):
     semantic_enabled: bool = False
     llm_enabled: bool = False
     profiles_enabled: bool = False
+    profiles_dir: str | None = None
     feedback_dir: str | None = None
     include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
     buffer_days: int = DEFAULT_AVAILABILITY_BUFFER_DAYS
@@ -96,6 +108,7 @@ class StaffeerConfig(BaseModel):
             data_path=settings.data_path,
             openrouter_api_key=settings.openrouter_api_key,
             profiles_enabled=profiles_enabled,
+            profiles_dir=_resolve_profiles_dir(),
             feedback_dir=os.environ.get("STAFFEER_FEEDBACK_DIR"),
             milvus_path=os.environ.get("STAFFEER_MILVUS_PATH"),
             embedding_model=os.environ.get("STAFFEER_EMBEDDING_MODEL", "all-MiniLM-L6-v2"),

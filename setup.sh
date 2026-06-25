@@ -71,13 +71,13 @@ log "Ensuring Python 3.12 is available (uv-managed) ..."
 uv python install 3.12
 
 # 4. Dependencies — creates .venv and installs the project (editable) + dev tools.
-#    Includes the llm + nlp + semantic extras so the full CLI works out of the box:
+#    Includes the llm + nlp + semantic + parse extras so the full CLI works out of the box:
 #    free-text `match-text` needs the DSPy reasoner (llm) and the fail-closed Presidio
 #    PII scrubber (nlp); `match --semantic` needs the Milvus Lite + sentence-transformers
-#    stack (semantic). Remaining heavy extras stay out until needed:
-#    `uv sync --extra parse --extra eval`.
-log "Syncing dependencies (uv sync --extra llm --extra nlp --extra semantic) ..."
-uv sync --extra llm --extra nlp --extra semantic
+#    stack (semantic); `parse` installs Docling (heavy; downloads models on first use).
+#    Remaining heavy extras stay out until needed: `uv sync --extra eval`.
+log "Syncing dependencies (uv sync --extra llm --extra nlp --extra semantic --extra parse) ..."
+uv sync --extra llm --extra nlp --extra semantic --extra parse
 
 # 4b. spaCy model — Presidio's NER engine needs en_core_web_sm to scrub PII before any LLM call.
 log "Downloading the spaCy model for PII scrubbing (en_core_web_sm) ..."
@@ -93,15 +93,15 @@ fi
 
 # 5. Install the CLI on PATH so `staffeer` is runnable from anywhere.
 #    `uv tool install` builds an ISOLATED environment — it does NOT inherit the .venv
-#    above — so the llm + nlp + semantic extras and the spaCy model must be requested here
+#    above — so the llm + nlp + semantic + parse extras and the spaCy model must be requested here
 #    too, or the global `staffeer match-text` / `match --semantic` fails with
-#    ModuleNotFoundError (presidio/dspy, or pymilvus/sentence-transformers).
+#    ModuleNotFoundError (presidio/dspy, pymilvus/sentence-transformers, or docling).
 #    The model wheel is pinned because the tool env can't run `spacy download` after install.
 SPACY_MODEL_WHL="https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
 if [[ "${INSTALL_CLI}" -eq 1 ]]
 then
-  log "Installing the staffeer CLI on your PATH (uv tool install, with llm+nlp+semantic extras) ..."
-  uv tool install --force --editable ".[llm,nlp,semantic]" --with "en_core_web_sm @ ${SPACY_MODEL_WHL}"
+  log "Installing the staffeer CLI on your PATH (uv tool install, with llm+nlp+semantic+parse extras) ..."
+  uv tool install --force --editable ".[llm,nlp,semantic,parse]" --with "en_core_web_sm @ ${SPACY_MODEL_WHL}"
   uv tool update-shell 2>/dev/null || true
 fi
 

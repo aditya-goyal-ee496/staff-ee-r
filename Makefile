@@ -7,11 +7,11 @@ help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-install:  ## Install dependencies (llm + nlp + semantic extras) into the project venv
+install:  ## Install dependencies (llm + nlp + semantic + parse extras) into the project venv
 	# llm (DSPy reasoner) + nlp (Presidio PII scrubber) + semantic (Milvus Lite +
-	# sentence-transformers for `match --semantic`) so the full CLI works out of the
-	# box. Add parse/eval as needed.
-	uv sync --extra llm --extra nlp --extra semantic
+	# sentence-transformers for `match --semantic`) + parse (Docling profile parser) so
+	# the full CLI works out of the box. Add eval as needed.
+	uv sync --extra llm --extra nlp --extra semantic --extra parse
 	# Presidio's NER engine requires the spaCy en_core_web_sm model
 	uv run python -m spacy download en_core_web_sm
 

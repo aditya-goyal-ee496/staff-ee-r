@@ -8,16 +8,18 @@ never adapters directly (`docs/tasks/parallelization-guide.md`).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import typer
 
 from staffeer.composition import build_matcher, build_role_parser
 from staffeer.config import StaffeerConfig, load_env_file
 from staffeer.domain.errors import StaffeerError, SupplyDemandError
 from staffeer.domain.explain import PROVENANCE_SOURCE, SKILLS_SOURCE
-from staffeer.domain.matcher import Matcher, _build_consultant_summary
-from staffeer.domain.models import Consultant, EligibilityResult, Match, Shortlist, SupplyState
+from staffeer.domain.index_builder import IndexBuilder
+from staffeer.domain.matcher import Matcher
+from staffeer.domain.models import EligibilityResult, Match, Shortlist, SupplyState
 from staffeer.ports.reasoner import LLMReasonerError
-from staffeer.ports.semantic_index import IndexItem
 
 app = typer.Typer(
     no_args_is_help=True, help="Staffeer — ranked, explainable consultant shortlists."
@@ -46,34 +48,33 @@ def _semantic_config(config: StaffeerConfig) -> StaffeerConfig:
     return config.model_copy(update={"semantic_enabled": True})
 
 
-def _upsert_consultant(matcher: Matcher, consultant: Consultant) -> None:
-    """Scrub, build an IndexItem, and upsert one consultant into the semantic index."""
-    scrubbed = matcher.pii.scrub(_build_consultant_summary(consultant)).text
-    item = IndexItem(
-        id=consultant.id,
-        text=scrubbed,
-        namespace="skills",
-        metadata={"location": consultant.location, "state": str(consultant.state)},
-    )
-    matcher.semantic_index.upsert(item)
-    typer.echo(f"indexed: {consultant.id}")
+def _profile_stems(profiles_dir: Path | None) -> tuple[str, ...]:
+    """Glob the *.pdf stems in `profiles_dir` (CLI-owned filesystem I/O); empty when no dir."""
+    if profiles_dir is None or not profiles_dir.is_dir():
+        return ()
+    return tuple(p.stem for p in profiles_dir.glob("*.pdf"))
 
 
-def _index_all(matcher: Matcher) -> None:
-    """Upsert every beach consultant into the semantic index; warn when supply is empty."""
+def _index_all(matcher: Matcher, profiles_dir: Path | None = None) -> None:
+    """Index every included consultant via `IndexBuilder`; warn when supply is empty."""
     consultants = list(matcher.supply.consultants(*matcher.include_states))
     if not consultants:
         typer.echo("warning: no beach consultants found; index is empty.", err=True)
-    for consultant in consultants:
-        _upsert_consultant(matcher, consultant)
+    builder = IndexBuilder(matcher.profiles, matcher.pii, matcher.semantic_index)
+    for outcome in builder.build(consultants, profiles_dir, _profile_stems(profiles_dir)):
+        label = "profile-attached" if outcome.profile_attached else "summary-only"
+        typer.echo(f"indexed: {outcome.consultant_id} ({label})")
 
 
 @app.command()
 def index(data: str | None = _DATA_OPTION) -> None:
     """(Re)build the semantic index from supply data; idempotent."""
     config = _semantic_config(_build_matcher_config(data))
+    profiles_dir = Path(config.profiles_dir) if config.profiles_dir else None
+    if profiles_dir and profiles_dir.is_dir():
+        config = config.model_copy(update={"profiles_enabled": True})
     try:
-        _index_all(build_matcher(config))
+        _index_all(build_matcher(config), profiles_dir)
     except StaffeerError as exc:
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(code=1) from exc
