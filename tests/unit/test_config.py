@@ -149,3 +149,38 @@ def test_feedback_dir_is_none_when_env_absent(monkeypatch: pytest.MonkeyPatch) -
 
     # Assert
     assert config.feedback_dir is None
+
+
+def test_milvus_path_read_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange
+    monkeypatch.setenv("STAFFEER_MILVUS_PATH", "/data/milvus.db")
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.milvus_path == "/data/milvus.db"
+
+
+def test_embedding_model_read_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange
+    monkeypatch.setenv("STAFFEER_EMBEDDING_MODEL", "sentence-transformers/all-mpnet-base-v2")
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.embedding_model == "sentence-transformers/all-mpnet-base-v2"
+
+
+def test_embedding_model_defaults_to_all_minilm_when_env_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Arrange
+    monkeypatch.delenv("STAFFEER_EMBEDDING_MODEL", raising=False)
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.embedding_model == "all-MiniLM-L6-v2"

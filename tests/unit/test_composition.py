@@ -10,6 +10,7 @@ from staffeer.adapters.docling_profiles import DoclingProfileParser
 from staffeer.adapters.markdown_feedback import MarkdownFeedbackStore
 from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
 from staffeer.adapters.null_pii import NullPIIScrubber
+from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.adapters.presidio_pii import PresidioPIIScrubber
 from staffeer.composition import build_matcher
 from staffeer.config import StaffeerConfig
@@ -74,3 +75,38 @@ def test_llm_enabled_without_key_falls_back_to_null_reasoner(
     pytest.importorskip("presidio_analyzer")
     matcher = build_matcher(StaffeerConfig(llm_enabled=True, openrouter_api_key=None))
     assert isinstance(matcher.reasoner, NullLLMReasoner)
+
+
+def test_semantic_enabled_with_milvus_path_wires_milvus_semantic_index(
+    tmp_path: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """semantic_enabled=True + milvus_path set must wire MilvusSemanticIndex."""
+    pytest.importorskip("pymilvus")
+    pytest.importorskip("presidio_analyzer")
+    from staffeer.adapters.milvus_index import MilvusSemanticIndex
+
+    monkeypatch.setattr(
+        "staffeer.composition._build_pii_scrubber", lambda config: PresidioPIIScrubber()
+    )
+    matcher = build_matcher(StaffeerConfig(semantic_enabled=True, milvus_path=str(tmp_path)))
+    assert isinstance(matcher.semantic_index, MilvusSemanticIndex)
+
+
+def test_semantic_enabled_without_milvus_path_falls_back_to_null_index_and_warns(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """semantic_enabled=True with no milvus_path must yield NullSemanticIndex and log a warning."""
+    pytest.importorskip("presidio_analyzer")
+    import logging
+
+    monkeypatch.setattr(
+        "staffeer.composition._build_pii_scrubber", lambda config: PresidioPIIScrubber()
+    )
+    with caplog.at_level(logging.WARNING, logger="staffeer.composition"):
+        matcher = build_matcher(StaffeerConfig(semantic_enabled=True, milvus_path=None))
+    assert isinstance(matcher.semantic_index, NullSemanticIndex)
+    assert any(
+        "semantic_enabled_but_no_milvus_path_fallback_to_null" in r.message for r in caplog.records
+    )

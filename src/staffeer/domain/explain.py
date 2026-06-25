@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from staffeer.domain.models import EligibilityResult, ExplanationFactor, SkillScore
 from staffeer.ports.reasoner import SoftAssessment
+from staffeer.ports.semantic_index import Hit
 
 SKILLS_SOURCE: str = "skills"
 """Canonical source label for the skill-coverage ExplanationFactor.
@@ -23,6 +24,13 @@ SOFT_LLM_SOURCE: str = "soft_llm"
 
 Use this constant wherever code compares or assigns ``ExplanationFactor.source`` for
 soft-LLM assessments — a rename here propagates at compile time rather than silently diverging.
+"""
+
+SEMANTIC_SOURCE: str = "semantic"
+"""Canonical source label for the semantic similarity ExplanationFactor.
+
+Use this constant wherever code compares or assigns ``ExplanationFactor.source`` for
+semantic matches — a rename here propagates at compile time rather than silently diverging.
 """
 
 
@@ -56,6 +64,22 @@ def soft_factor(assessment: SoftAssessment) -> ExplanationFactor:
     return ExplanationFactor(
         source=SOFT_LLM_SOURCE,
         summary=assessment.summary,
+        detail=detail,
+    )
+
+
+def semantic_factor(hits: list[Hit]) -> ExplanationFactor:
+    """Explain semantic similarity: whether semantic matches were found and the top score."""
+    if not hits:
+        return ExplanationFactor(
+            source=SEMANTIC_SOURCE,
+            summary="no semantic matches found",
+            detail="",
+        )
+    detail = ", ".join(h.id for h in hits)
+    return ExplanationFactor(
+        source=SEMANTIC_SOURCE,
+        summary=f"top semantic similarity {hits[0].score:.2f}",
         detail=detail,
     )
 

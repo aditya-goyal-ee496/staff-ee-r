@@ -18,12 +18,26 @@ from staffeer.domain.models import (
     SkillScore,
 )
 from staffeer.ports.reasoner import SoftAssessment
+from staffeer.ports.semantic_index import Hit
 
 
 def skill_contribution(coverage: SkillScore, weight: float = 1.0) -> ScoreContribution:
     """The deterministic skill-coverage contributor to a consultant's match score."""
     return ScoreContribution(
         source="skills", value=coverage.value, weight=weight, detail=coverage.detail
+    )
+
+
+def _semantic_detail(hits: list[Hit]) -> str:
+    """Comma-separated hit ids; empty string when there are no hits."""
+    return ", ".join(hit.id for hit in hits)
+
+
+def semantic_contribution(hits: list[Hit], weight: float = 1.0) -> ScoreContribution:
+    """The semantic similarity contributor to a consultant's match score."""
+    value = max((hit.score for hit in hits), default=0.0)
+    return ScoreContribution(
+        source="semantic", value=value, weight=weight, detail=_semantic_detail(hits)
     )
 
 

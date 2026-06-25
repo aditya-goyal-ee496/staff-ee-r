@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install test eval lint format match match-text arch clean
+.PHONY: help install test eval lint format match match-text index arch clean
 
 ROLE ?= backend engineer with database experience
 
@@ -34,6 +34,9 @@ match:  ## Match a role by id, e.g. make match ROLE="ROLE-01"
 
 match-text:  ## Match a free-text role, e.g. make match-text ROLE="backend engineer with database experience" (needs OPENROUTER_API_KEY in .env)
 	uv run staffeer match-text "$(ROLE)"
+
+index:  ## (Re)build semantic index embeddings; requires STAFFEER_MILVUS_PATH in .env
+	uv run staffeer index
 
 arch:  ## Build + serve the LikeC4 diagram viewer (requires Node; build then preview)
 	# Uses `build` + `preview` (production bundle) instead of `start`: the dev server's
