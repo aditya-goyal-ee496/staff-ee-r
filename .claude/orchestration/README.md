@@ -69,6 +69,26 @@ A single fixed pipeline (the Spec stage self-skips when the slice changes no con
 8. **Progress report** — update `progress.html` with the slice's status.
 9. **Finalize** *(gate)* — mark the task `[x]`; Conventional Commit / PR.
 
+### Known gaps
+
+- **Config-only / external-tool deliverables can pass every gate unexecuted.** The Quality gate
+  runs `make format/test/lint`, so a slice whose deliverable is driven by an *external* runner
+  (e.g. a Promptfoo `exec` provider invoked via `npx promptfoo`, a Dockerfile, a CI YAML) is only
+  ever **statically reviewed** — never actually run end-to-end. Verify reasons about the code; it
+  does not launch the tool. Slice 07 (#10) shipped a Promptfoo provider that all gates passed but
+  that `npx promptfoo eval` could not invoke at all (wrong cwd assumption, prompt read from the
+  wrong argv index); the fix landed separately in #11.
+  - **Aggravating factor:** Verify's bounded auto-repair can *remove* a flagged-but-load-bearing
+    line (here, a `sys.path` setup the reviewer called fragile) and re-pass the Quality gate
+    (`make test` doesn't import the external-tool entrypoint), so the regression is invisible to
+    every downstream gate.
+  - **Mitigation (when authoring a slice whose output is run by an external tool):** add a
+    deterministic **smoke test** under `tests/` or `evals/` that invokes the entrypoint exactly as
+    the external tool will (same cwd, same argv/stdin shape) and asserts on its output — so the
+    integration is covered by `make test` and survives Verify repairs. Until that is routine, treat
+    "all gates green" on a config/eval/CI slice as *necessary but not sufficient*: run the real tool
+    once before merge.
+
 ## Adding a new workflow
 
 See [`workflow-contract.md`](workflow-contract.md#4-how-to-add-a-workflow). In short: drop a new
