@@ -28,12 +28,22 @@ _DATA_OPTION = typer.Option(
 )
 
 
-def _matcher(data: str | None) -> Matcher:
-    """Build the matcher from env config, with an optional workbook-path override."""
+def _build_matcher_config(data: str | None, semantic: bool = False) -> StaffeerConfig:
+    """Build a StaffeerConfig with optional data-path override and semantic flag."""
     config = StaffeerConfig.from_env()
     if data:
         config = config.model_copy(update={"data_path": data})
-    return build_matcher(config)
+    if semantic:
+        config = _semantic_config(config)
+    return config
+
+
+def _semantic_config(config: StaffeerConfig) -> StaffeerConfig:
+    """Enable semantic search and validate milvus_path; exit 1 if unset."""
+    if not config.milvus_path:
+        typer.echo("error: STAFFEER_MILVUS_PATH is required to use --semantic.", err=True)
+        raise typer.Exit(code=1)
+    return config.model_copy(update={"semantic_enabled": True})
 
 
 def _upsert_consultant(matcher: Matcher, consultant: Consultant) -> None:
@@ -49,22 +59,21 @@ def _upsert_consultant(matcher: Matcher, consultant: Consultant) -> None:
     typer.echo(f"indexed: {consultant.id}")
 
 
+def _index_all(matcher: Matcher) -> None:
+    """Upsert every beach consultant into the semantic index; warn when supply is empty."""
+    consultants = list(matcher.supply.consultants(*matcher.include_states))
+    if not consultants:
+        typer.echo("warning: no beach consultants found; index is empty.", err=True)
+    for consultant in consultants:
+        _upsert_consultant(matcher, consultant)
+
+
 @app.command()
 def index(data: str | None = _DATA_OPTION) -> None:
     """(Re)build the semantic index from supply data; idempotent."""
-    config = StaffeerConfig.from_env()
-    if data:
-        config = config.model_copy(update={"data_path": data})
-    if not config.milvus_path:
-        typer.echo("error: STAFFEER_MILVUS_PATH is required to build the index.", err=True)
-        raise typer.Exit(code=1)
+    config = _semantic_config(_build_matcher_config(data))
     try:
-        matcher = build_matcher(config.model_copy(update={"semantic_enabled": True}))
-        consultants = list(matcher.supply.consultants(*matcher.include_states))
-        if not consultants:
-            typer.echo("warning: no beach consultants found; index is empty.", err=True)
-        for consultant in consultants:
-            _upsert_consultant(matcher, consultant)
+        _index_all(build_matcher(config))
     except StaffeerError as exc:
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(code=1) from exc
@@ -74,20 +83,13 @@ def index(data: str | None = _DATA_OPTION) -> None:
 @app.command()
 def roles(data: str | None = _DATA_OPTION) -> None:
     """List the open roles available to match against."""
-    for role in _matcher(data).supply.open_roles():
+    matcher = build_matcher(_build_matcher_config(data))
+    for role in matcher.supply.open_roles():
         typer.echo(f"{role.id}: {role.title} — {role.location} [{role.priority.value}]")
 
 
-@app.command()
-def match(
-    role_id: str,
-    data: str | None = _DATA_OPTION,
-    show_excluded: bool = typer.Option(
-        False, "--show-excluded", help="Also list excluded consultants and why."
-    ),
-) -> None:
-    """Print the ranked beach shortlist for the role with id ROLE_ID."""
-    matcher = _matcher(data)
+def _match_role(matcher: Matcher, role_id: str, show_excluded: bool) -> None:
+    """Look up role_id, run matching, and print shortlist; exits 1 when role not found."""
     try:
         role = matcher.supply.role(role_id)
     except SupplyDemandError as exc:
@@ -99,23 +101,38 @@ def match(
 
 
 @app.command()
-def match_text(
-    query: str,
+def match(
+    role_id: str,
     data: str | None = _DATA_OPTION,
     show_excluded: bool = typer.Option(
         False, "--show-excluded", help="Also list excluded consultants and why."
     ),
+    semantic: bool = typer.Option(
+        False, "--semantic", help="Enable semantic matching via vector search."
+    ),
 ) -> None:
-    """Match a free-text role description against the beach."""
-    config = StaffeerConfig.from_env()
-    if data:
-        config = config.model_copy(update={"data_path": data})
+    """Print the ranked beach shortlist for the role with id ROLE_ID."""
+    _match_role(build_matcher(_build_matcher_config(data, semantic)), role_id, show_excluded)
+
+
+def _build_llm_config(data: str | None, semantic: bool) -> StaffeerConfig:
+    """Build an LLM-enabled config; exits 1 when OPENROUTER_API_KEY is absent."""
+    config = _build_matcher_config(data)
     if not config.openrouter_api_key:
         typer.echo("error: OPENROUTER_API_KEY is required for free-text matching.", err=True)
         raise typer.Exit(code=1)
     llm_config = config.model_copy(update={"llm_enabled": True})
-    role_parser = build_role_parser(llm_config)
-    matcher = build_matcher(llm_config)
+    return _semantic_config(llm_config) if semantic else llm_config
+
+
+def _parse_and_match(query: str, llm_config: StaffeerConfig, show_excluded: bool) -> None:
+    """Parse free-text query into a role and print shortlist; exits 1 on wiring or parse error."""
+    try:
+        role_parser = build_role_parser(llm_config)
+        matcher = build_matcher(llm_config)
+    except StaffeerError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
     try:
         role = role_parser.parse(query)
     except (ValueError, LLMReasonerError) as exc:
@@ -124,6 +141,21 @@ def match_text(
     shortlist = matcher.match(role)
     typer.echo(f"Role (free-text): {role.title} — {role.location}")
     _print_shortlist(shortlist, show_excluded)
+
+
+@app.command()
+def match_text(
+    query: str,
+    data: str | None = _DATA_OPTION,
+    show_excluded: bool = typer.Option(
+        False, "--show-excluded", help="Also list excluded consultants and why."
+    ),
+    semantic: bool = typer.Option(
+        False, "--semantic", help="Query the semantic index (requires STAFFEER_MILVUS_PATH)."
+    ),
+) -> None:
+    """Match a free-text role description against the beach."""
+    _parse_and_match(query, _build_llm_config(data, semantic), show_excluded)
 
 
 def _print_shortlist(shortlist: Shortlist, show_excluded: bool) -> None:

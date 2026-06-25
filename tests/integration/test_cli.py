@@ -127,3 +127,17 @@ def test_index_command_exits_nonzero_when_build_matcher_raises_staffeer_error(
             app, ["index", "--data", str(path)], env={"STAFFEER_MILVUS_PATH": "/tmp/test.db"}
         )
     assert result.exit_code == 1
+
+
+def test_match_text_exits_1_when_build_matcher_raises_staffeer_error(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """A StaffeerError from build_matcher in match_text (e.g. fail-closed PII guard) exits 1."""
+    path = workbook_factory()
+    with patch("staffeer.cli.main.build_matcher", side_effect=StaffeerError("fail closed")):
+        result = runner.invoke(
+            app,
+            ["match-text", "senior python engineer", "--data", str(path)],
+            env={"OPENROUTER_API_KEY": "dummy-key"},
+        )
+    assert result.exit_code == 1

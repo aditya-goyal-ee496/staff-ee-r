@@ -77,7 +77,10 @@ class StaffeerConfig(BaseModel):
     profiles_enabled: bool = False
     feedback_dir: str | None = None
     include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
-    weights: dict[str, float] = Field(default_factory=dict)
+    # Tunable per-contributor blend of skills, soft_llm, and semantic scores (Principle 4).
+    weights: dict[str, float] = Field(
+        default_factory=lambda: {"skills": 1.0, "soft_llm": 1.0, "semantic": 1.0}
+    )
     milvus_path: str | None = None
     embedding_model: str = "all-MiniLM-L6-v2"
 

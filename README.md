@@ -83,6 +83,10 @@ uv run staffeer match ROLE-01 --data planning/raw-data/demand-supply.xlsx
 
 # The Makefile target wraps `staffeer match` (uses $STAFFEER_DATA):
 make match ROLE="ROLE-02"
+
+# Enable semantic matching via vector search (requires `make index` to populate):
+uv run staffeer match ROLE-02 --semantic   # blend semantic similarity with skill matching
+# Requires: STAFFEER_MILVUS_PATH in .env; run `make index` first.
 ```
 
 Each consultant comes with the *why* — the rule behind every line is surfaced:
