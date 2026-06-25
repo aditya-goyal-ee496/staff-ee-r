@@ -12,7 +12,9 @@
 description: "Staffeer scenario coverage — 100% pass is a coverage WARNING, not success"
 
 providers:
-  - id: exec:uv run python evals/promptfoo_provider.py
+  # Promptfoo runs the provider from the config's directory (evals/); the script puts
+  # the repo root on sys.path itself, so a plain cwd-relative invocation is enough.
+  - id: exec:uv run python promptfoo_provider.py
     label: staffeer-core
 
 prompts:
