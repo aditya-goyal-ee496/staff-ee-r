@@ -287,13 +287,17 @@
   <details class="item" id="I3" open>
     <summary>
       <span class="badge b-done">Done</span>
-      <span class="title">I3 — Semantic blend <small>slice 05 · Null→Milvus, <code>--semantic</code></small></span>
+      <span class="title">I3 — Semantic blend <small>slice 05a · Null→Milvus, <code>--semantic</code></small></span>
       <span class="dep">depends on: I2, D, C</span>
     </summary>
     <div class="tasks"><ul>
       <li class="t-done">Swap <code>NullSemanticIndex</code>→Milvus; add semantic <code>ScoreContribution</code></li>
       <li class="t-done"><code>make index</code> (reproducible, idempotent); <code>--semantic</code> flag</li>
       <li class="t-done">MilvusSemanticIndex adapter implemented; composition wiring complete; ADR 005 documented</li>
+      <li class="t-done">CLI flag (<code>--semantic</code>) added to <code>match</code> and <code>match-text</code> commands with <code>milvus_path</code> validation</li>
+      <li class="t-done">Explicit default weights (<code>skills</code>/<code>soft_llm</code>/<code>semantic</code> all <code>1.0</code>) in config</li>
+      <li class="t-done">End-to-end test: populated semantic index changes ranking vs null index</li>
+      <li class="t-done">Semantic retrieval fully live in matching path; fail-closed PII maintained</li>
     </ul></div>
   </details>
 

@@ -89,7 +89,8 @@ def test_semantic_enabled_with_milvus_path_wires_milvus_semantic_index(
     monkeypatch.setattr(
         "staffeer.composition._build_pii_scrubber", lambda config: PresidioPIIScrubber()
     )
-    matcher = build_matcher(StaffeerConfig(semantic_enabled=True, milvus_path=str(tmp_path)))
+    db_path = str(tmp_path / "index.db")  # Milvus Lite requires a *.db file path, not a dir
+    matcher = build_matcher(StaffeerConfig(semantic_enabled=True, milvus_path=db_path))
     assert isinstance(matcher.semantic_index, MilvusSemanticIndex)
 
 

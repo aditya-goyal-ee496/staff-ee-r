@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 
 from staffeer.domain.errors import SemanticIndexError
 from staffeer.ports.semantic_index import Hit, IndexItem
@@ -33,6 +34,8 @@ class MilvusSemanticIndex:
         self._model = SentenceTransformer(model_name)
         probe: list[float] = self._model.encode("probe").tolist()
         self._dim = len(probe)
+        # Milvus Lite opens (not creates) the db file's directory; make it exist first.
+        Path(db_path).expanduser().parent.mkdir(parents=True, exist_ok=True)
         self._client: MilvusClient = MilvusClient(db_path)
         self._DataType = DataType
         self._ensure_collection()
@@ -48,12 +51,14 @@ class MilvusSemanticIndex:
         schema.add_field("namespace", DataType.VARCHAR, max_length=64)
         schema.add_field("embedding", DataType.FLOAT_VECTOR, dim=self._dim)
         schema.add_field("meta_json", DataType.VARCHAR, max_length=4096)
+        # FLAT (exact, brute-force) suits the POC's small consultant pool: no training/
+        # clustering step, so it is robust at any size. IVF_FLAT needs many training points
+        # (nlist centroids) and is for large corpora — overkill and unstable here.
         index_params = self._client.prepare_index_params()
         index_params.add_index(
             "embedding",
-            index_type="IVF_FLAT",
+            index_type="FLAT",
             metric_type="COSINE",
-            params={"nlist": 128},
         )
         self._client.create_collection(_COLLECTION, schema=schema, index_params=index_params)
 
@@ -103,6 +108,9 @@ class MilvusSemanticIndex:
             raise SemanticIndexError("query failed: invalid namespace value")
         try:
             vector = self._embed(text)
+            # Milvus requires the collection loaded into memory before search; this also
+            # makes rows inserted since the last load searchable. Idempotent when loaded.
+            self._client.load_collection(_COLLECTION)
             filter_expr = f'namespace == "{namespace}"' if namespace else ""
             results = self._client.search(
                 _COLLECTION,

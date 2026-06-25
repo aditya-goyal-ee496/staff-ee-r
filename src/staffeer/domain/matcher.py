@@ -66,7 +66,8 @@ class Matcher:
         coverage = skill_coverage(role, result.consultant)
         scrubbed_role, scrubbed_consultant = self._scrub_inputs(role, result.consultant)
         assessment = self._assess(scrubbed_consultant, scrubbed_role)
-        hits = self._query_semantic(scrubbed_role)
+        all_hits = self._query_semantic(scrubbed_role)
+        hits = [h for h in all_hits if h.id == result.consultant.id]
         return assemble_match(
             result.consultant,
             _build_contributions(coverage, assessment, hits, self.weights),
