@@ -1,6 +1,8 @@
 """Promptfoo exec provider — reads a scenario by id and runs the core matcher.
 
-Reads JSON from stdin with keys ``scenario_id`` and optional ``role_description``.
+Promptfoo's exec provider passes the rendered prompt as the final CLI argument; when
+run by hand the same payload may instead arrive as JSON on stdin (``{"prompt": ...}``).
+Either way the prompt is the identity template ``scenario_id|role_description``.
 Finds the scenario in ROLE_SCENARIOS, builds a Matcher with null adapters and an
 InMemorySupplyDemandSource seeded with the scenario consultants, calls match(), then
 prints a JSON result with shortlist, excluded, and rationale.
@@ -15,17 +17,23 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 
-from evals.datasets.role_scenarios import ROLE_SCENARIOS
+# Promptfoo runs this script from the config's directory (evals/), so the repo root is
+# not on the import path. Add it from this file's own location (not the cwd) so the
+# `evals` namespace package resolves regardless of where the provider is invoked from.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from staffeer.adapters.memory_supply_demand import InMemorySupplyDemandSource
-from staffeer.adapters.null_feedback import NullFeedbackStore
-from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
-from staffeer.adapters.null_pii import NullPIIScrubber
-from staffeer.adapters.null_profiles import NullProfileParser
-from staffeer.adapters.null_semantic_index import NullSemanticIndex
-from staffeer.domain.matcher import Matcher
-from staffeer.domain.models import SupplyState
+from evals.datasets.role_scenarios import ROLE_SCENARIOS  # noqa: E402
+
+from staffeer.adapters.memory_supply_demand import InMemorySupplyDemandSource  # noqa: E402
+from staffeer.adapters.null_feedback import NullFeedbackStore  # noqa: E402
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner  # noqa: E402
+from staffeer.adapters.null_pii import NullPIIScrubber  # noqa: E402
+from staffeer.adapters.null_profiles import NullProfileParser  # noqa: E402
+from staffeer.adapters.null_semantic_index import NullSemanticIndex  # noqa: E402
+from staffeer.domain.matcher import Matcher  # noqa: E402
+from staffeer.domain.models import SupplyState  # noqa: E402
 
 
 class ProviderError(Exception):
@@ -73,6 +81,14 @@ def _parse_prompt(prompt: str) -> tuple[str, str]:
     return scenario_id, role_description
 
 
+def _read_prompt() -> str:
+    """Promptfoo's exec provider calls ``<cmd> <prompt> <options> <context>``, so the
+    prompt is the first appended arg; fall back to stdin JSON when run by hand."""
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    return json.loads(sys.stdin.read()).get("prompt", "")
+
+
 def run_scenario(scenario_id: str, role_description: str) -> dict:
     """Find scenario, run matcher, return result dict."""
     scenario = _find_scenario(scenario_id)
@@ -87,8 +103,7 @@ def run_scenario(scenario_id: str, role_description: str) -> dict:
 
 if __name__ == "__main__":
     try:
-        payload = json.loads(sys.stdin.read())
-        scenario_id, role_description = _parse_prompt(payload.get("prompt", ""))
+        scenario_id, role_description = _parse_prompt(_read_prompt())
     except json.JSONDecodeError as exc:
         print(json.dumps({"error": f"invalid input: {exc}"}))
         sys.exit(1)
