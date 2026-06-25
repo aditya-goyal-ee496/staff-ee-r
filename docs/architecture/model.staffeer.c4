@@ -66,6 +66,10 @@ model {
         #CORE
         description 'Composes ProfileParser + FeedbackStore + PIIScrubber ports; makes PII-scrubbing structurally mandatory before profile/feedback text reaches any LLM or semantic index. Pure, no I/O.'
       }
+      index-builder = component 'Index Builder' {
+        #CORE
+        description 'Builds the semantic index: per consultant, joins the xlsx summary with PII-scrubbed profile text (via ProfileParser + PIIScrubber ports) and upserts through the SemanticIndex port. Orchestration over ports; no filesystem I/O (the driving adapter supplies the file listing).'
+      }
       filter = component 'Constraint Filter' {
         #CORE
         description 'Hard constraints: location (incl. Chennai-open) and start date.'
@@ -115,7 +119,7 @@ model {
   staffing-forum -> cli 'reviews explanations in the weekly forum'
   engineer -> evals 'develops, evaluates, tunes'
 
-  cli -> core 'invokes matching pipeline'
+  cli -> core 'invokes matching pipeline + index build'
   evals -> core 'drives with curated datasets'
   core -> ports 'depends on (interfaces)'
   ingestion -> ports 'scrubs PII + parses profiles/feedback via ports'

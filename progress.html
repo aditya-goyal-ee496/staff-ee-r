@@ -92,10 +92,10 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~80%</div>
+      <div class="num">~83%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:80%"></span></div>
-      <div class="sub">134 of 167 tracked task items</div>
+      <div class="bar"><span style="width:83%"></span></div>
+      <div class="sub">139 of 167 tracked task items</div>
     </div>
     <div class="card">
       <div class="num">5<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
@@ -287,7 +287,7 @@
   <details class="item" id="I3" open>
     <summary>
       <span class="badge b-done">Done</span>
-      <span class="title">I3 — Semantic blend <small>slice 05a · Null→Milvus, <code>--semantic</code></small></span>
+      <span class="title">I3 — Semantic blend <small>slices 05a + 05b · Null→Milvus, profile embeddings</small></span>
       <span class="dep">depends on: I2, D, C</span>
     </summary>
     <div class="tasks"><ul>
@@ -298,6 +298,15 @@
       <li class="t-done">Explicit default weights (<code>skills</code>/<code>soft_llm</code>/<code>semantic</code> all <code>1.0</code>) in config</li>
       <li class="t-done">End-to-end test: populated semantic index changes ranking vs null index</li>
       <li class="t-done">Semantic retrieval fully live in matching path; fail-closed PII maintained</li>
+      <li style="margin-top: 10px; font-style: italic; color: var(--muted);"><strong>Slice 05b — Profile-text embeddings:</strong>
+        <ul style="list-style: none; padding-left: 0; margin-top: 6px;">
+          <li class="t-done">Profile PDF text indexed via <code>IndexBuilder</code>; normalised filename↔name matching</li>
+          <li class="t-done">PII-scrubbed profile text combined with xlsx summary before embedding</li>
+          <li class="t-done">Summary-only fallback for unmatched profiles (fail-closed, no fabrication)</li>
+          <li class="t-done">Configurable profiles directory (<code>STAFFEER_PROFILES_DIR</code>)</li>
+          <li class="t-done">Pure domain mapping + integration tests with stub <code>ProfileParser</code></li>
+        </ul>
+      </li>
     </ul></div>
   </details>
 

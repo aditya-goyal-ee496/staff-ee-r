@@ -184,3 +184,44 @@ def test_embedding_model_defaults_to_all_minilm_when_env_absent(
 
     # Assert
     assert config.embedding_model == "all-MiniLM-L6-v2"
+
+
+def test_profiles_dir_uses_env_when_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange
+    monkeypatch.setenv("STAFFEER_PROFILES_DIR", "/custom/profiles")
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.profiles_dir == "/custom/profiles"
+
+
+def test_profiles_dir_defaults_to_bundled_dir_when_present(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Arrange
+    profiles_dir = tmp_path / "profiles"
+    profiles_dir.mkdir()
+    monkeypatch.delenv("STAFFEER_PROFILES_DIR", raising=False)
+    monkeypatch.setattr("staffeer.config.DEFAULT_PROFILES_DIR", profiles_dir)
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.profiles_dir == str(profiles_dir)
+
+
+def test_profiles_dir_is_none_when_unset_and_bundled_dir_absent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Arrange
+    monkeypatch.delenv("STAFFEER_PROFILES_DIR", raising=False)
+    monkeypatch.setattr("staffeer.config.DEFAULT_PROFILES_DIR", tmp_path / "missing-profiles")
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.profiles_dir is None
