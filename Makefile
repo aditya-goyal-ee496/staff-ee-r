@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install test eval lint format match arch clean
+.PHONY: help install test eval lint format match match-text arch clean
 
 ROLE ?= backend engineer with database experience
 
@@ -7,9 +7,11 @@ help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-install:  ## Install dependencies into the project venv (uv sync)
-	uv sync
-	# Presidio requires the spaCy en_core_web_sm model for NER
+install:  ## Install dependencies (llm + nlp extras) into the project venv
+	# llm (DSPy reasoner) + nlp (Presidio PII scrubber) so the full CLI — incl.
+	# free-text `match-text` — works out of the box. Add parse/eval as needed.
+	uv sync --extra llm --extra nlp
+	# Presidio's NER engine requires the spaCy en_core_web_sm model
 	uv run python -m spacy download en_core_web_sm
 
 test:  ## Run unit + integration tests
@@ -27,8 +29,11 @@ format:  ## Auto-format and apply safe lint fixes
 	uv run ruff format .
 	uv run ruff check --fix .
 
-match:  ## Run the matcher for a role, e.g. make match ROLE="backend engineer"
+match:  ## Match a role by id, e.g. make match ROLE="ROLE-01"
 	uv run staffeer match "$(ROLE)"
+
+match-text:  ## Match a free-text role, e.g. make match-text ROLE="backend engineer with database experience" (needs OPENROUTER_API_KEY in .env)
+	uv run staffeer match-text "$(ROLE)"
 
 arch:  ## Build + serve the LikeC4 diagram viewer (requires Node; build then preview)
 	# Uses `build` + `preview` (production bundle) instead of `start`: the dev server's

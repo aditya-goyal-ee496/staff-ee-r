@@ -3,13 +3,11 @@
 from staffeer.ports.reasoner import (
     Evidence,
     LLMReasoner,
-    NullLLMReasoner,
     SoftAssessment,
 )
 from staffeer.ports.semantic_index import (
     Hit,
     IndexItem,
-    NullSemanticIndex,
     SemanticIndex,
 )
 
@@ -18,8 +16,6 @@ __all__ = [
     "Hit",
     "IndexItem",
     "LLMReasoner",
-    "NullLLMReasoner",
-    "NullSemanticIndex",
     "SemanticIndex",
     "SoftAssessment",
 ]

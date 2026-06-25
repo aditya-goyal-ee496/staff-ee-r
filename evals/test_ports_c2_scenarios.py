@@ -40,15 +40,11 @@ from __future__ import annotations
 
 import pytest
 
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
+from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.domain.errors import LLMReasonerError, SemanticIndexError, StaffeerError
-from staffeer.ports.reasoner import (
-    NullLLMReasoner,
-    SoftAssessment,
-)
-from staffeer.ports.semantic_index import (
-    IndexItem,
-    NullSemanticIndex,
-)
+from staffeer.ports.reasoner import SoftAssessment
+from staffeer.ports.semantic_index import IndexItem
 
 # ---------------------------------------------------------------------------
 # Scenario 1 — NullSemanticIndex upsert is idempotent (no error, no return)

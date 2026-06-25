@@ -8,11 +8,15 @@ must satisfy the structural invariants verified by `tests/contract/test_reasoner
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from pydantic import Field, model_validator
 
 from staffeer.domain.models import ValueObject
+
+
+class LLMReasonerError(Exception):
+    """Raised by an LLMReasoner implementation when the LLM call fails."""
 
 
 class Evidence(ValueObject):
@@ -35,6 +39,18 @@ class SoftAssessment(ValueObject):
     summary: str = ""
     abstained: bool = False
 
+    @model_validator(mode="before")
+    @classmethod
+    def _low_confidence_abstains(cls, data: Any) -> Any:
+        """When confidence < 0.3, force abstention and zero-out score/evidence."""
+        if isinstance(data, dict) and data.get("confidence", 1.0) < 0.3:
+            data["abstained"] = True
+            data["score"] = 0.0
+            data["evidence"] = ()
+            data["cited_sources"] = ()
+            data["summary"] = ""
+        return data
+
     @model_validator(mode="after")
     def _non_abstaining_requires_summary(self) -> SoftAssessment:
         if not self.abstained and not self.summary:
@@ -49,17 +65,3 @@ class LLMReasoner(Protocol):
     def assess(self, *, consultant_summary: str, role_description: str) -> SoftAssessment:
         """Return a `SoftAssessment`; never fabricate evidence when abstaining."""
         ...
-
-
-class NullLLMReasoner:
-    """Null-object implementation — abstains with score 0.0 and no evidence."""
-
-    def assess(self, *, consultant_summary: str, role_description: str) -> SoftAssessment:
-        return SoftAssessment(
-            score=0.0,
-            confidence=0.0,
-            evidence=(),
-            cited_sources=(),
-            summary="",
-            abstained=True,
-        )

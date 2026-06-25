@@ -8,6 +8,7 @@ import pytest
 
 from staffeer.adapters.docling_profiles import DoclingProfileParser
 from staffeer.adapters.markdown_feedback import MarkdownFeedbackStore
+from staffeer.adapters.null_llm_reasoner import NullLLMReasoner
 from staffeer.adapters.null_pii import NullPIIScrubber
 from staffeer.adapters.presidio_pii import PresidioPIIScrubber
 from staffeer.composition import build_matcher
@@ -64,3 +65,12 @@ def test_profiles_enabled_wires_docling_profile_parser() -> None:
 def test_feedback_dir_wires_markdown_feedback_store(tmp_path: pytest.TempPathFactory) -> None:
     matcher = build_matcher(StaffeerConfig(feedback_dir=str(tmp_path)))
     assert isinstance(matcher.feedback, MarkdownFeedbackStore)
+
+
+def test_llm_enabled_without_key_falls_back_to_null_reasoner(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """llm_enabled=True with no api key must yield NullLLMReasoner, not raise."""
+    pytest.importorskip("presidio_analyzer")
+    matcher = build_matcher(StaffeerConfig(llm_enabled=True, openrouter_api_key=None))
+    assert isinstance(matcher.reasoner, NullLLMReasoner)

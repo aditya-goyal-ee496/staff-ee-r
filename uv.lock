@@ -3745,6 +3745,7 @@ source = { editable = "." }
 dependencies = [
     { name = "openpyxl" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "typer" },
 ]
 
@@ -3782,6 +3783,7 @@ requires-dist = [
     { name = "presidio-anonymizer", marker = "extra == 'nlp'", specifier = ">=2.2" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pymilvus", marker = "extra == 'nlp'", specifier = ">=2.4" },
+    { name = "python-dotenv", specifier = ">=1.0" },
     { name = "spacy", marker = "extra == 'nlp'", specifier = ">=3.7" },
     { name = "typer", specifier = ">=0.12" },
 ]

@@ -10,10 +10,37 @@ out-of-the-box wiring is the inert, all-null matcher.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field
 
 from staffeer.domain.models import SupplyState
+
+# Repo root is three levels up from this file (src/staffeer/config.py).
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+# The demand-supply workbook bundled under planning/raw-data, used when $STAFFEER_DATA is unset.
+DEFAULT_DATA_FILE = _REPO_ROOT / "planning" / "raw-data" / "demand-supply.xlsx"
+# The local dotenv loaded for developer convenience by the CLI entry point.
+DEFAULT_ENV_FILE = _REPO_ROOT / ".env"
+
+
+def load_env_file(path: Path | None = None) -> None:
+    """Load `key=value` pairs from a local `.env` into the process environment.
+
+    A developer convenience so `STAFFEER_DATA`/`OPENROUTER_API_KEY` set in `.env` are honoured.
+    Real environment variables always win (`override=False`, preserving 12-factor precedence);
+    a missing file is a no-op.
+    """
+    load_dotenv(path or DEFAULT_ENV_FILE, override=False)
+
+
+def _resolve_data_path() -> str | None:
+    """The workbook path from `$STAFFEER_DATA`, else the bundled raw-data workbook if present."""
+    configured = os.environ.get("STAFFEER_DATA")
+    if configured:
+        return configured
+    return str(DEFAULT_DATA_FILE) if DEFAULT_DATA_FILE.is_file() else None
 
 
 class Settings(BaseModel):
@@ -28,7 +55,7 @@ class Settings(BaseModel):
     def from_env(cls) -> Settings:
         """Build settings from the current process environment."""
         return cls(
-            data_path=os.environ.get("STAFFEER_DATA"),
+            data_path=_resolve_data_path(),
             openrouter_api_key=os.environ.get("OPENROUTER_API_KEY"),
         )
 

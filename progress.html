@@ -92,15 +92,15 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~46%</div>
+      <div class="num">~48%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:46%"></span></div>
-      <div class="sub">50 of 108 tracked task items</div>
+      <div class="bar"><span style="width:48%"></span></div>
+      <div class="sub">52 of 108 tracked task items</div>
     </div>
     <div class="card">
       <div class="num">2<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
       <div class="lbl">Integration slices shipped</div>
-      <div class="sub">I1 beach matcher live; I2 skill scoring complete</div>
+      <div class="sub">I1 beach matcher live; I2 skill scoring complete; Track E ready</div>
     </div>
     <div class="card">
       <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
@@ -242,15 +242,15 @@
     </ul></div>
   </details>
 
-  <details class="item" id="E">
+  <details class="item" id="E" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
+      <span class="badge b-done">Done</span>
       <span class="title">Track E — LLM reasoner <small>slice 06 · DSPy / OpenRouter</small></span>
       <span class="dep">depends on: C2</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo">DSPy/OpenRouter adapter (<code>adapters/dspy_openrouter.py</code>), stubbed in tests</li>
-      <li class="t-todo">Free-text role parsing; soft-score contributor; abstention</li>
+      <li class="t-done">DSPy/OpenRouter adapter (<code>adapters/dspy_openrouter.py</code>), stubbed in tests</li>
+      <li class="t-done">Free-text role parsing; soft-score contributor; abstention</li>
     </ul></div>
   </details>
 
@@ -367,7 +367,7 @@ const NODES = [
   { id:'C2', label:'C2 · Contracts w2',       sub:'semantic + LLM',  status:'done', layer:2, order:4 },
   { id:'I1', label:'I1 · Beach e2e',          sub:'first ship',      status:'done', layer:3, order:0 },
   { id:'D',  label:'Track D · Semantic',      sub:'Milvus Lite',     status:'todo', layer:3, order:3 },
-  { id:'E',  label:'Track E · LLM',           sub:'DSPy/OpenRouter', status:'todo', layer:3, order:4 },
+  { id:'E',  label:'Track E · LLM',           sub:'DSPy/OpenRouter', status:'done', layer:3, order:4 },
   { id:'I2', label:'I2 · Skill scoring',      sub:'ranked output',   status:'done', layer:4, order:0 },
   { id:'I3', label:'I3 · Semantic blend',     sub:'--semantic',      status:'todo', layer:5, order:0 },
   { id:'I4', label:'I4 · LLM soft score',     sub:'free-text role',  status:'todo', layer:5, order:1 },

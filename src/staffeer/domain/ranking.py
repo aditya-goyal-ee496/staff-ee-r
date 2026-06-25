@@ -17,12 +17,20 @@ from staffeer.domain.models import (
     ScoreContribution,
     SkillScore,
 )
+from staffeer.ports.reasoner import SoftAssessment
 
 
 def skill_contribution(coverage: SkillScore, weight: float = 1.0) -> ScoreContribution:
     """The deterministic skill-coverage contributor to a consultant's match score."""
     return ScoreContribution(
         source="skills", value=coverage.value, weight=weight, detail=coverage.detail
+    )
+
+
+def soft_contribution(assessment: SoftAssessment, weight: float = 1.0) -> ScoreContribution:
+    """The soft LLM assessment contributor to a consultant's match score."""
+    return ScoreContribution(
+        source="soft_llm", value=assessment.score, weight=weight, detail=assessment.summary
     )
 
 

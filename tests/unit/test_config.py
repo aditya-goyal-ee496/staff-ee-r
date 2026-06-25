@@ -1,6 +1,9 @@
+import os
+from pathlib import Path
+
 import pytest
 
-from staffeer.config import Settings, StaffeerConfig
+from staffeer.config import Settings, StaffeerConfig, load_env_file
 
 
 def test_settings_default_to_none_when_env_absent() -> None:
@@ -9,6 +12,77 @@ def test_settings_default_to_none_when_env_absent() -> None:
 
     # Assert
     assert settings.data_path is None
+
+
+def test_data_path_uses_env_when_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Arrange
+    monkeypatch.setenv("STAFFEER_DATA", "/custom/demand-supply.xlsx")
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.data_path == "/custom/demand-supply.xlsx"
+
+
+def test_data_path_defaults_to_bundled_workbook_when_present(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Arrange
+    workbook = tmp_path / "demand-supply.xlsx"
+    workbook.write_bytes(b"")
+    monkeypatch.delenv("STAFFEER_DATA", raising=False)
+    monkeypatch.setattr("staffeer.config.DEFAULT_DATA_FILE", workbook)
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.data_path == str(workbook)
+
+
+def test_data_path_is_none_when_unset_and_workbook_absent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Arrange
+    monkeypatch.delenv("STAFFEER_DATA", raising=False)
+    monkeypatch.setattr("staffeer.config.DEFAULT_DATA_FILE", tmp_path / "missing.xlsx")
+
+    # Act
+    config = StaffeerConfig.from_env()
+
+    # Assert
+    assert config.data_path is None
+
+
+def test_load_env_file_populates_environment_from_dotenv(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Arrange
+    env_file = tmp_path / ".env"
+    env_file.write_text("STAFFEER_DATA=/from/dotenv.xlsx\n")
+    monkeypatch.delenv("STAFFEER_DATA", raising=False)
+
+    # Act
+    load_env_file(env_file)
+
+    # Assert
+    assert os.environ["STAFFEER_DATA"] == "/from/dotenv.xlsx"
+
+
+def test_load_env_file_does_not_override_real_environment(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Arrange
+    env_file = tmp_path / ".env"
+    env_file.write_text("STAFFEER_DATA=/from/dotenv.xlsx\n")
+    monkeypatch.setenv("STAFFEER_DATA", "/from/real-env.xlsx")
+
+    # Act
+    load_env_file(env_file)
+
+    # Assert
+    assert os.environ["STAFFEER_DATA"] == "/from/real-env.xlsx"
 
 
 def test_profiles_enabled_defaults_to_false() -> None:
