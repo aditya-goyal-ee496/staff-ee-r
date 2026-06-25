@@ -13,9 +13,9 @@ import typer
 from staffeer.composition import build_matcher, build_role_parser
 from staffeer.config import StaffeerConfig, load_env_file
 from staffeer.domain.errors import StaffeerError, SupplyDemandError
-from staffeer.domain.explain import SKILLS_SOURCE
+from staffeer.domain.explain import PROVENANCE_SOURCE, SKILLS_SOURCE
 from staffeer.domain.matcher import Matcher, _build_consultant_summary
-from staffeer.domain.models import Consultant, EligibilityResult, Match, Shortlist
+from staffeer.domain.models import Consultant, EligibilityResult, Match, Shortlist, SupplyState
 from staffeer.ports.reasoner import LLMReasonerError
 from staffeer.ports.semantic_index import IndexItem
 
@@ -100,6 +100,19 @@ def _match_role(matcher: Matcher, role_id: str, show_excluded: bool) -> None:
     _print_shortlist(shortlist, show_excluded)
 
 
+def _states_from_include(include: list[str], config: StaffeerConfig) -> tuple[SupplyState, ...]:
+    """Parse comma-separated include values into SupplyState; exits 1 on unknown state."""
+    raw = [token for value in include for token in value.split(",") if token]
+    extra: list[SupplyState] = []
+    for token in raw:
+        try:
+            extra.append(SupplyState(token))
+        except ValueError:
+            typer.echo(f"error: unknown supply state '{token}'.", err=True)
+            raise typer.Exit(code=1) from None
+    return tuple({*config.include_states, *extra})
+
+
 @app.command()
 def match(
     role_id: str,
@@ -110,9 +123,17 @@ def match(
     semantic: bool = typer.Option(
         False, "--semantic", help="Enable semantic matching via vector search."
     ),
+    include: list[str] = typer.Option(  # noqa: B008
+        [],
+        "--include",
+        help="Comma-separated supply states to include (e.g. rolling_off,new_joiner).",
+    ),
 ) -> None:
     """Print the ranked beach shortlist for the role with id ROLE_ID."""
-    _match_role(build_matcher(_build_matcher_config(data, semantic)), role_id, show_excluded)
+    config = _build_matcher_config(data, semantic)
+    if include:
+        config = config.model_copy(update={"include_states": _states_from_include(include, config)})
+    _match_role(build_matcher(config), role_id, show_excluded)
 
 
 def _build_llm_config(data: str | None, semantic: bool) -> StaffeerConfig:
@@ -197,7 +218,14 @@ def _format_match(position: int, match: Match) -> str:
     )
     skill_detail = _skill_detail(match)
     skill_block = f"\n     skills: {skill_detail}" if skill_detail else ""
-    return f"{head}\n{factors}{skill_block}"
+    provenance_block = ""
+    for factor in match.explanation.factors:
+        if factor.source == PROVENANCE_SOURCE:
+            availability_text = factor.summary or factor.detail
+            if availability_text:
+                provenance_block = f"\n     availability: {availability_text}"
+            break
+    return f"{head}\n{factors}{skill_block}{provenance_block}"
 
 
 def _format_excluded(result: EligibilityResult) -> str:

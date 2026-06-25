@@ -53,12 +53,12 @@ def test_staffeer_config_weights_semantic_default_is_1_0() -> None:
     assert config.weights["semantic"] == 1.0
 
 
-def test_staffeer_config_weights_has_exactly_three_default_keys() -> None:
-    """I1: Default weights contain exactly the three expected keys — no extras, none missing."""
+def test_staffeer_config_weights_has_exactly_four_default_keys() -> None:
+    """I1: Default weights contain exactly the four expected keys — no extras, none missing."""
     # Arrange / Act
     config = StaffeerConfig()
     # Assert
-    assert set(config.weights.keys()) == {"skills", "soft_llm", "semantic"}
+    assert set(config.weights.keys()) == {"skills", "soft_llm", "semantic", "provenance"}
 
 
 # ---------------------------------------------------------------------------

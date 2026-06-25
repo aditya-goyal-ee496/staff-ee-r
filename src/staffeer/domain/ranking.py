@@ -41,6 +41,19 @@ def semantic_contribution(hits: list[Hit], weight: float = 1.0) -> ScoreContribu
     )
 
 
+def provenance_contribution(
+    *, confidence: float, skills_verified: bool, weight: float = 1.0
+) -> ScoreContribution:
+    """The provenance contributor: downweights unverified skills and lower-confidence roll-offs."""
+    value = confidence * (1.0 if skills_verified else 0.5)
+    return ScoreContribution(
+        source="provenance",
+        value=value,
+        weight=weight,
+        detail=f"confidence={confidence:.2f}, skills_verified={skills_verified}",
+    )
+
+
 def soft_contribution(assessment: SoftAssessment, weight: float = 1.0) -> ScoreContribution:
     """The soft LLM assessment contributor to a consultant's match score."""
     return ScoreContribution(

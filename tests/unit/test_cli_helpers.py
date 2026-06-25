@@ -8,7 +8,7 @@ logic is reproduced here: helpers are called directly and outputs are inspected
 from __future__ import annotations
 
 from staffeer.cli.main import _format_match, _skill_detail
-from staffeer.domain.explain import SKILLS_SOURCE
+from staffeer.domain.explain import PROVENANCE_SOURCE, SKILLS_SOURCE
 from staffeer.domain.models import (
     Consultant,
     Explanation,
@@ -114,3 +114,49 @@ def test_format_match_shows_adjacent_substitution_in_skills_line() -> None:
     output = _format_match(1, match)
 
     assert "adjacent" in output
+
+
+# _format_match provenance / availability tests
+
+
+def _match_with_provenance_factor(summary: str, detail: str = "") -> Match:
+    factor = ExplanationFactor(source=PROVENANCE_SOURCE, summary=summary, detail=detail)
+    return Match(consultant=_consultant(), score=0.8, explanation=Explanation(factors=(factor,)))
+
+
+def test_format_match_availability_line_appears_when_provenance_factor_present() -> None:
+    """The 'availability:' line is rendered when a provenance factor with a summary is present."""
+    match = _match_with_provenance_factor(summary="beach; confidence=1.00")
+
+    output = _format_match(1, match)
+
+    assert "     availability: beach; confidence=1.00" in output
+
+
+def test_format_match_availability_line_includes_confidence_for_fully_confident_beach() -> None:
+    """Confidence is always surfaced — not just when below 0.9 (acceptance criterion)."""
+    match = _match_with_provenance_factor(summary="beach; confidence=1.00")
+
+    output = _format_match(1, match)
+
+    assert "confidence=1.00" in output
+
+
+def test_format_match_availability_falls_back_to_detail_when_summary_is_empty() -> None:
+    """When provenance summary is empty, the detail field is used so the line still renders."""
+    match = _match_with_provenance_factor(
+        summary="", detail="confidence=1.00, skills_verified=True"
+    )
+
+    output = _format_match(1, match)
+
+    assert "     availability: confidence=1.00, skills_verified=True" in output
+
+
+def test_format_match_omits_availability_line_when_provenance_factor_absent() -> None:
+    """No 'availability:' line when no provenance factor is present."""
+    match = _match_without_skills_factor()
+
+    output = _format_match(1, match)
+
+    assert "availability:" not in output

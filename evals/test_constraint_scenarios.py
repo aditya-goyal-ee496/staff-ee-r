@@ -20,7 +20,7 @@ from staffeer.adapters.null_pii import NullPIIScrubber
 from staffeer.adapters.null_profiles import NullProfileParser
 from staffeer.adapters.null_semantic_index import NullSemanticIndex
 from staffeer.domain.matcher import Matcher
-from staffeer.domain.models import Consultant, Role
+from staffeer.domain.models import Consultant, Role, SupplyState
 
 
 @dataclass(frozen=True)
@@ -30,6 +30,7 @@ class _Scenario:
     consultants: Sequence[Consultant]
     ranked: list[str]
     excluded: set[str] = field(default_factory=set)
+    include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
 
 
 def _beach(
@@ -47,6 +48,42 @@ def _beach(
         skills=skills,
         chennai_open=chennai_open,
         available_from=available_from,
+    )
+
+
+def _rolling(
+    name: str,
+    location: str,
+    skills: tuple[str, ...],
+    available_from: date,
+    *,
+    confidence: float = 1.0,
+) -> Consultant:
+    return Consultant(
+        id=name.lower(),
+        name=name,
+        location=location,
+        skills=skills,
+        state=SupplyState.ROLLING_OFF,
+        available_from=available_from,
+        confidence=confidence,
+    )
+
+
+def _joiner(
+    name: str,
+    location: str,
+    skills: tuple[str, ...],
+    available_from: date,
+) -> Consultant:
+    return Consultant(
+        id=name.lower(),
+        name=name,
+        location=location,
+        skills=skills,
+        state=SupplyState.NEW_JOINER,
+        available_from=available_from,
+        skills_verified=False,
     )
 
 
@@ -147,29 +184,63 @@ _SCENARIOS = (
         ranked=["Gita", "Hari"],
         excluded=set(),
     ),
+    # 08-12 scenario 1: rolling-off within buffer is included; late roll-off is excluded.
+    _Scenario(
+        name="rolling_off_within_buffer_is_included",
+        role=Role(
+            id="R-RO",
+            title="Backend",
+            location="Remote-India",
+            required_skills=("python",),
+            start_date=date(2026, 8, 1),
+        ),
+        consultants=(
+            _rolling("Eligible", "Chennai", ("python",), available_from=date(2026, 8, 5)),
+            _rolling("Late", "Bengaluru", ("python",), available_from=date(2026, 9, 1)),
+        ),
+        ranked=["Eligible"],
+        excluded={"Late"},
+        include_states=(SupplyState.ROLLING_OFF,),
+    ),
+    # 08-12 scenario 2: new joiner within buffer is included; unverified skills are flagged.
+    _Scenario(
+        name="new_joiner_within_buffer_is_included_with_unverified_skills",
+        role=Role(
+            id="R-NJ",
+            title="Kotlin Developer",
+            location="Remote-India",
+            required_skills=("kotlin",),
+            start_date=date(2026, 8, 1),
+        ),
+        consultants=(_joiner("Nisha", "Pune", ("kotlin",), available_from=date(2026, 8, 3)),),
+        ranked=["Nisha"],
+        excluded=set(),
+        include_states=(SupplyState.NEW_JOINER,),
+    ),
 )
 
 
-def _matcher(consultants: Sequence[Consultant]) -> Matcher:
+def _matcher(scenario: _Scenario) -> Matcher:
     return Matcher(
-        supply=InMemorySupplyDemandSource(consultants=consultants),
+        supply=InMemorySupplyDemandSource(consultants=scenario.consultants),
         profiles=NullProfileParser(),
         feedback=NullFeedbackStore(),
         pii=NullPIIScrubber(),
         semantic_index=NullSemanticIndex(),
         reasoner=NullLLMReasoner(),
+        include_states=scenario.include_states,
     )
 
 
 @pytest.mark.parametrize("scenario", _SCENARIOS, ids=lambda scenario: scenario.name)
 def test_ranked_shortlist_matches_the_golden_expectation(scenario: _Scenario) -> None:
-    shortlist = _matcher(scenario.consultants).match(scenario.role)
+    shortlist = _matcher(scenario).match(scenario.role)
     assert [match.consultant.name for match in shortlist.matches] == scenario.ranked
 
 
 @pytest.mark.parametrize("scenario", _SCENARIOS, ids=lambda scenario: scenario.name)
 def test_exclusions_match_the_golden_expectation(scenario: _Scenario) -> None:
-    shortlist = _matcher(scenario.consultants).match(scenario.role)
+    shortlist = _matcher(scenario).match(scenario.role)
     assert {result.consultant.name for result in shortlist.excluded} == scenario.excluded
 
 
@@ -189,14 +260,14 @@ _GAP_NAMES = [c.name for c in _GAP_SCENARIO.consultants]
 
 def test_gap_scenario_ranked_list_is_non_empty() -> None:
     """The gap scenario must produce a non-empty ranked list — no consultant is silently dropped."""
-    shortlist = _matcher(_GAP_SCENARIO.consultants).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
+    shortlist = _matcher(_GAP_SCENARIO).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
     assert len(shortlist.matches) > 0
 
 
 @pytest.mark.parametrize("consultant_name", _GAP_NAMES)
 def test_gap_scenario_ranked_match_has_skills_factor(consultant_name: str) -> None:
     """Each ranked match in the gap scenario must carry at least one skills explanation factor."""
-    shortlist = _matcher(_GAP_SCENARIO.consultants).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
+    shortlist = _matcher(_GAP_SCENARIO).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
     match = next(m for m in shortlist.matches if m.consultant.name == consultant_name)
     skill_factors = [f for f in match.explanation.factors if f.source == "skills"]
     assert skill_factors, f"{consultant_name} has no skills factor"
@@ -205,7 +276,7 @@ def test_gap_scenario_ranked_match_has_skills_factor(consultant_name: str) -> No
 @pytest.mark.parametrize("consultant_name", _GAP_NAMES)
 def test_gap_scenario_ranked_match_skills_factor_has_detail(consultant_name: str) -> None:
     """Each skills explanation factor in the gap scenario must carry non-empty detail text."""
-    shortlist = _matcher(_GAP_SCENARIO.consultants).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
+    shortlist = _matcher(_GAP_SCENARIO).match(_GAP_SCENARIO.role)  # type: ignore[union-attr]
     match = next(m for m in shortlist.matches if m.consultant.name == consultant_name)
     skill_factors = [f for f in match.explanation.factors if f.source == "skills"]
     assert skill_factors[0].detail, f"{consultant_name} skills factor detail is empty"
