@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
-from staffeer.domain.explain import constraint_factors, semantic_factor, skill_factor
+from datetime import date
+
+from staffeer.domain.explain import (
+    PROVENANCE_SOURCE,
+    constraint_factors,
+    provenance_factor,
+    semantic_factor,
+    skill_factor,
+)
 from staffeer.domain.models import (
     ConstraintCheck,
     Consultant,
     EligibilityResult,
     SkillScore,
+    SupplyState,
 )
 from staffeer.ports.semantic_index import Hit
 
@@ -56,3 +65,41 @@ def test_semantic_factor_with_hits_shows_top_score() -> None:
     factor = semantic_factor(hits)
     # Assert
     assert "0.85" in factor.summary
+
+
+# ---------------------------------------------------------------------------
+# 08-05: Unit tests for provenance_factor
+# ---------------------------------------------------------------------------
+
+
+def test_provenance_factor_source_is_provenance_source_constant() -> None:
+    # Arrange / Act
+    factor = provenance_factor(confidence=1.0, skills_verified=True, state=SupplyState.BEACH)
+    # Assert
+    assert factor.source == PROVENANCE_SOURCE
+
+
+def test_provenance_factor_low_confidence_mentions_confidence_in_summary() -> None:
+    # Arrange / Act
+    factor = provenance_factor(confidence=0.3, skills_verified=True, state=SupplyState.ROLLING_OFF)
+    # Assert
+    assert "confidence" in factor.summary
+
+
+def test_provenance_factor_unverified_skills_mentions_unverified_in_summary() -> None:
+    # Arrange / Act
+    factor = provenance_factor(confidence=1.0, skills_verified=False, state=SupplyState.NEW_JOINER)
+    # Assert
+    assert "unverified" in factor.summary
+
+
+def test_provenance_factor_rolling_off_state_with_date_mentions_rolling_off_in_summary() -> None:
+    # Arrange / Act
+    factor = provenance_factor(
+        confidence=0.9,
+        skills_verified=True,
+        state=SupplyState.ROLLING_OFF,
+        available_from=date(2026, 8, 1),
+    )
+    # Assert
+    assert "rolling_off" in factor.summary

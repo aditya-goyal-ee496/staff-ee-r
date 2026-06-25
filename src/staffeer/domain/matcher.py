@@ -12,8 +12,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
-from staffeer.domain.eligibility import screen_consultants
-from staffeer.domain.explain import constraint_factors, semantic_factor, skill_factor, soft_factor
+from staffeer.domain.eligibility import DEFAULT_AVAILABILITY_BUFFER_DAYS, screen_consultants
+from staffeer.domain.explain import (
+    constraint_factors,
+    provenance_factor,
+    semantic_factor,
+    skill_factor,
+    soft_factor,
+)
 from staffeer.domain.models import (
     Consultant,
     EligibilityResult,
@@ -27,6 +33,7 @@ from staffeer.domain.models import (
 )
 from staffeer.domain.ranking import (
     assemble_match,
+    provenance_contribution,
     rank,
     semantic_contribution,
     skill_contribution,
@@ -53,10 +60,13 @@ class Matcher:
     reasoner: LLMReasoner
     include_states: tuple[SupplyState, ...] = (SupplyState.BEACH,)
     weights: Mapping[str, float] = field(default_factory=dict)
+    buffer_days: int = DEFAULT_AVAILABILITY_BUFFER_DAYS
 
     def match(self, role: Role) -> Shortlist:
         """Return the ranked, explained shortlist for `role`, with explained exclusions."""
-        screened = screen_consultants(self.supply.consultants(*self.include_states), role)
+        screened = screen_consultants(
+            self.supply.consultants(*self.include_states), role, self.buffer_days
+        )
         matches = rank(self._match_for(result, role) for result in screened if result.eligible)
         excluded = tuple(result for result in screened if not result.eligible)
         return Shortlist(role=role, matches=matches, excluded=excluded)
@@ -70,7 +80,7 @@ class Matcher:
         hits = [h for h in all_hits if h.id == result.consultant.id]
         return assemble_match(
             result.consultant,
-            _build_contributions(coverage, assessment, hits, self.weights),
+            _build_contributions(result.consultant, coverage, assessment, hits, self.weights),
             _build_explanation(result, coverage, assessment, hits),
         )
 
@@ -98,16 +108,22 @@ class Matcher:
 
 
 def _build_contributions(
+    consultant: Consultant,
     coverage: SkillScore,
     assessment: SoftAssessment,
     hits: list[Hit],
     weights: Mapping[str, float],
 ) -> tuple[ScoreContribution, ...]:
-    """Assemble the three score contributions from their respective port results."""
+    """Assemble the four score contributions from their respective port results."""
     return (
         skill_contribution(coverage, weights.get("skills", 1.0)),
         soft_contribution(assessment, weights.get("soft_llm", 1.0)),
         semantic_contribution(hits, weights.get("semantic", 1.0)),
+        provenance_contribution(
+            confidence=consultant.confidence,
+            skills_verified=consultant.skills_verified,
+            weight=weights.get("provenance", 1.0),
+        ),
     )
 
 
@@ -124,6 +140,12 @@ def _build_explanation(
             skill_factor(coverage),
             soft_factor(assessment),
             semantic_factor(hits),
+            provenance_factor(
+                confidence=result.consultant.confidence,
+                skills_verified=result.consultant.skills_verified,
+                state=result.consultant.state,
+                available_from=result.consultant.available_from,
+            ),
         )
     )
 

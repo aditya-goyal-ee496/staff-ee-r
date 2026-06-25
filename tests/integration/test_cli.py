@@ -141,3 +141,62 @@ def test_match_text_exits_1_when_build_matcher_raises_staffeer_error(
             env={"OPENROUTER_API_KEY": "dummy-key"},
         )
     assert result.exit_code == 1
+
+
+# ---------------------------------------------------------------------------
+# 08-10: CLI integration tests for --include
+# ---------------------------------------------------------------------------
+
+# Rolling Off row: [#, Name, Email, Grade, Key Skills, Current Client, Roll-off Date, Confidence,
+#                   Location, Chennai-open, Notes]
+_ROLLING_OFF_CONSULTANT = [
+    1,
+    "Vikram Rolling",
+    "v@x.example",
+    "Senior",
+    "python",
+    "ClientCo",
+    "2026-07-05",
+    "high",
+    "Remote-India",
+    "No",
+    "",
+]
+
+
+def test_match_include_rolling_off_shows_rolling_off_consultant(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """--include rolling_off surfaces a rolling-off consultant in the shortlist."""
+    # Arrange
+    path = workbook_factory(roles=[_REMOTE_ROLE], rolling=[_ROLLING_OFF_CONSULTANT])
+    # Act
+    result = runner.invoke(
+        app, ["match", "ROLE-1", "--data", str(path), "--include", "rolling_off"]
+    )
+    # Assert
+    assert "Vikram Rolling" in result.stdout
+
+
+def test_match_default_beach_excludes_rolling_off_consultant(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """Without --include, the default beach-only mode does not show rolling-off consultants."""
+    # Arrange
+    path = workbook_factory(roles=[_REMOTE_ROLE], rolling=[_ROLLING_OFF_CONSULTANT])
+    # Act
+    result = runner.invoke(app, ["match", "ROLE-1", "--data", str(path)])
+    # Assert
+    assert "Vikram Rolling" not in result.stdout
+
+
+def test_match_include_unknown_state_exits_nonzero(
+    workbook_factory: Callable[..., Path],
+) -> None:
+    """--include with an unrecognised state value exits with a non-zero code."""
+    # Arrange
+    path = workbook_factory(roles=[_REMOTE_ROLE])
+    # Act
+    result = runner.invoke(app, ["match", "ROLE-1", "--data", str(path), "--include", "bogus"])
+    # Assert
+    assert result.exit_code != 0

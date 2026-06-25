@@ -13,7 +13,7 @@ from staffeer.domain.eligibility import (
     location_constraint,
     screen_consultants,
 )
-from staffeer.domain.models import Consultant, Role
+from staffeer.domain.models import Consultant, Role, SupplyState
 
 
 def _consultant(location: str, available_from: date | None = None) -> Consultant:
@@ -98,3 +98,77 @@ def test_screening_excludes_everyone_when_no_consultant_fits_the_role() -> None:
     role = Role(id="R-01", title="Engineer", location="Chennai")
     shortlist = screen_consultants((_consultant("Pune"), _consultant("Bangalore")), role)
     assert [result.eligible for result in shortlist] == [False, False]
+
+
+# ---------------------------------------------------------------------------
+# 08-01: Roll-off buffer-boundary eligibility tests
+# ---------------------------------------------------------------------------
+
+
+def test_roll_off_available_within_buffer_is_eligible() -> None:
+    # Arrange
+    role = Role(id="R-01", title="Engineer", location="Remote-India", start_date=date(2026, 7, 1))
+    consultant = Consultant(
+        id="C-RO",
+        name="Rolling Rao",
+        location="Chennai",
+        state=SupplyState.ROLLING_OFF,
+        available_from=date(2026, 7, 4),  # start_date + 3 days
+    )
+    # Act
+    result = availability_constraint(consultant, role, buffer_days=7)
+    # Assert
+    assert result.passed is True
+
+
+def test_roll_off_available_after_buffer_is_excluded() -> None:
+    # Arrange
+    role = Role(id="R-01", title="Engineer", location="Remote-India", start_date=date(2026, 7, 1))
+    consultant = Consultant(
+        id="C-RO",
+        name="Late Rao",
+        location="Chennai",
+        state=SupplyState.ROLLING_OFF,
+        available_from=date(2026, 7, 15),  # start_date + 14 days, beyond 7-day buffer
+    )
+    # Act
+    result = availability_constraint(consultant, role, buffer_days=7)
+    # Assert
+    assert result.passed is False
+
+
+def test_late_roll_off_exclusion_reason_names_the_dates() -> None:
+    # Arrange
+    role = Role(id="R-01", title="Engineer", location="Remote-India", start_date=date(2026, 7, 1))
+    consultant = Consultant(
+        id="C-RO",
+        name="Late Rao",
+        location="Chennai",
+        state=SupplyState.ROLLING_OFF,
+        available_from=date(2026, 7, 15),
+    )
+    # Act
+    result = availability_constraint(consultant, role, buffer_days=7)
+    # Assert
+    assert "2026-07-15" in result.reason and "2026-07-01" in result.reason
+
+
+# ---------------------------------------------------------------------------
+# 08-11: Late-roll-off no-match NEGATIVE scenario
+# ---------------------------------------------------------------------------
+
+
+def test_late_roll_off_produces_no_eligible_results() -> None:
+    # Arrange
+    role = Role(id="R-01", title="Engineer", location="Remote-India", start_date=date(2026, 7, 1))
+    consultant = Consultant(
+        id="C-RO",
+        name="Way Late Rao",
+        location="Chennai",
+        state=SupplyState.ROLLING_OFF,
+        available_from=date(2026, 9, 1),  # far beyond any buffer
+    )
+    # Act
+    results = screen_consultants((consultant,), role, buffer_days=7)
+    # Assert
+    assert not any(result.eligible for result in results)

@@ -62,6 +62,7 @@ def build_matcher(config: StaffeerConfig) -> Matcher:
         pii=pii,
         include_states=config.include_states,
         weights=config.weights,
+        buffer_days=config.buffer_days,
         semantic_index=_build_semantic_index(config),
         reasoner=_build_reasoner(config),
     )

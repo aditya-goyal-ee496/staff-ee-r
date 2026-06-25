@@ -5,6 +5,7 @@ from __future__ import annotations
 from staffeer.domain.models import Consultant, Match, ScoreContribution, SkillScore
 from staffeer.domain.ranking import (
     assemble_match,
+    provenance_contribution,
     rank,
     semantic_contribution,
     skill_contribution,
@@ -116,3 +117,43 @@ def test_semantic_contribution_source_is_semantic() -> None:
     contribution = semantic_contribution(hits)
     # Assert
     assert contribution.source == "semantic"
+
+
+# ---------------------------------------------------------------------------
+# 08-04: Unit tests for provenance_contribution
+# ---------------------------------------------------------------------------
+
+
+def test_provenance_contribution_high_confidence_verified_yields_full_value() -> None:
+    # Arrange / Act
+    contribution = provenance_contribution(confidence=1.0, skills_verified=True)
+    # Assert
+    assert contribution.value == 1.0
+
+
+def test_provenance_contribution_low_confidence_verified_yields_low_value() -> None:
+    # Arrange / Act
+    contribution = provenance_contribution(confidence=0.3, skills_verified=True)
+    # Assert
+    assert contribution.value == 0.3
+
+
+def test_provenance_contribution_high_confidence_unverified_yields_halved_value() -> None:
+    # Arrange / Act
+    contribution = provenance_contribution(confidence=1.0, skills_verified=False)
+    # Assert
+    assert contribution.value == 0.5
+
+
+def test_provenance_contribution_source_is_provenance() -> None:
+    # Arrange / Act
+    contribution = provenance_contribution(confidence=0.8, skills_verified=True)
+    # Assert
+    assert contribution.source == "provenance"
+
+
+def test_provenance_contribution_low_confidence_unverified_yields_combined_penalty() -> None:
+    # Arrange / Act
+    contribution = provenance_contribution(confidence=0.3, skills_verified=False)
+    # Assert
+    assert contribution.value == 0.15

@@ -8,7 +8,9 @@ no I/O (`.claude/principles/hexagonal-architecture.md`).
 
 from __future__ import annotations
 
-from staffeer.domain.models import EligibilityResult, ExplanationFactor, SkillScore
+from datetime import date
+
+from staffeer.domain.models import EligibilityResult, ExplanationFactor, SkillScore, SupplyState
 from staffeer.ports.reasoner import SoftAssessment
 from staffeer.ports.semantic_index import Hit
 
@@ -32,6 +34,49 @@ SEMANTIC_SOURCE: str = "semantic"
 Use this constant wherever code compares or assigns ``ExplanationFactor.source`` for
 semantic matches — a rename here propagates at compile time rather than silently diverging.
 """
+
+PROVENANCE_SOURCE: str = "provenance"
+"""Canonical source label for the provenance ExplanationFactor."""
+
+
+def provenance_factor(
+    *,
+    confidence: float,
+    skills_verified: bool,
+    state: SupplyState,
+    available_from: date | None = None,
+) -> ExplanationFactor:
+    """Explain supply-state provenance: availability, confidence, and skill verification."""
+    summary = _provenance_summary(
+        confidence=confidence,
+        skills_verified=skills_verified,
+        state=state,
+        available_from=available_from,
+    )
+    detail = f"confidence={confidence:.2f}, skills_verified={skills_verified}"
+    return ExplanationFactor(source=PROVENANCE_SOURCE, summary=summary, detail=detail)
+
+
+def _provenance_summary(
+    *,
+    confidence: float,
+    skills_verified: bool,
+    state: SupplyState,
+    available_from: date | None,
+) -> str:
+    """One-line provenance summary: supply state, confidence note, and verification flag."""
+    parts = [state.value]
+    if available_from is not None:
+        parts[0] = f"{state.value}, available {available_from}"
+    confidence_note = (
+        f"confidence={confidence:.2f} (low roll-off confidence)"
+        if confidence < 0.9
+        else f"confidence={confidence:.2f}"
+    )
+    parts.append(confidence_note)
+    if not skills_verified:
+        parts.append("skills unverified (new joiner)")
+    return "; ".join(parts)
 
 
 def skill_factor(coverage: SkillScore) -> ExplanationFactor:
