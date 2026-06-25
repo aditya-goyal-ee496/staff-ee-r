@@ -14,24 +14,24 @@ and DeepEval (relevance/faithfulness), including negative scenarios and an LLM-a
 
 ## Acceptance criteria
 
-- [ ] Promptfoo config drives a curated set of role scenarios (positive + negative) through the CLI/core.
-- [ ] DeepEval metrics score relevance and faithfulness of the shortlist + rationale.
-- [ ] Negative scenarios included (no viable match, location-blocked, unverified new joiner,
+- [x] Promptfoo config drives a curated set of role scenarios (positive + negative) through the CLI/core.
+- [x] DeepEval metrics score relevance and faithfulness of the shortlist + rationale.
+- [x] Negative scenarios included (no viable match, location-blocked, unverified new joiner,
       adjacent-skill case); synthetic data added where the dataset lacks them.
-- [ ] A relevance suite scoring 100% triggers a coverage review (treated as a warning, not success).
-- [ ] `make eval` runs deterministic scenario evals AND the relevance suites.
+- [x] A relevance suite scoring 100% triggers a coverage review (treated as a warning, not success).
+- [x] `make eval` runs deterministic scenario evals AND the relevance suites.
 
 ## Tasks
 
-- [ ] **Datasets** (`evals/datasets/`) — golden role scenarios with expected qualitative outcomes;
+- [x] **Datasets** (`evals/datasets/`) — golden role scenarios with expected qualitative outcomes;
       label positives/negatives; document provenance of any synthetic data.
-- [ ] **Promptfoo** (`evals/promptfoo.yaml`) — providers/prompts wired to the matcher; assertions
+- [x] **Promptfoo** (`evals/promptfoo.yaml`) — providers/prompts wired to the matcher; assertions
       for must-include / must-exclude candidates and explanation properties.
-- [ ] **DeepEval** (`evals/deepeval/`) — relevance + faithfulness metrics; LLM-as-judge config;
+- [x] **DeepEval** (`evals/deepeval/`) — relevance + faithfulness metrics; LLM-as-judge config;
       thresholds chosen deliberately (not 100%).
-- [ ] **Make / CI** — `make eval` runs both layers; CI runs deterministic evals always and relevance
+- [x] **Make / CI** — `make eval` runs both layers; CI runs deterministic evals always and relevance
       evals on a schedule or label (LLM cost-aware).
-- [ ] **Reporting** — eval summary surfaced in PRs that touch prompts/weights (`CLAUDE.md → Git workflow`).
+- [x] **Reporting** — eval summary surfaced in PRs that touch prompts/weights (`CLAUDE.md → Git workflow`).
 
 ## Notes
 

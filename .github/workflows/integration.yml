@@ -1,0 +1,35 @@
+# Heavy lane relevance evals — cost-aware (makes real LLM calls via DeepEval).
+# NOT triggered on every PR: runs on a weekly schedule (Mon 04:00 UTC) or when a PR
+# carries the "run-heavy" label.  Do NOT modify ci.yml to add this — keep lanes separate.
+
+name: Heavy lane relevance evals
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"  # every Monday at 04:00 UTC
+  pull_request:
+    types: [labeled]
+    branches: [main]
+
+jobs:
+  relevance:
+    if: github.event_name == 'schedule' || github.event.label.name == 'run-heavy'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv with Python 3.12
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install core + eval extra
+        run: uv sync --extra eval
+
+      - name: Run deterministic evals
+        run: uv run pytest evals --ignore=evals/deepeval -q
+
+      - name: Run DeepEval relevance and faithfulness suites
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: uv run pytest evals/deepeval -q -m integration

@@ -13,3 +13,6 @@ __pycache__/
 
 # LikeC4 production build output (created by `make arch`)
 dist/
+
+# Milvus Lite runtime store (created when the matcher/eval provider runs)
+.staffeer/

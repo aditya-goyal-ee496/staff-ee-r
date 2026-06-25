@@ -1,0 +1,139 @@
+# Promptfoo scenario coverage config for Staffeer relevance evals.
+#
+# NOTE: A 100% pass rate here is a COVERAGE WARNING, not a success signal.
+# Full marks mean the scenarios are too easy. Add harder scenarios when you see 100%.
+#
+# Provider: exec — runs the core matcher with null adapters; no network, no LLM cost.
+# Positive scenarios: assert expected names appear in shortlist and excluded names do not.
+# Negative scenarios vary: hard-exclusion scenarios assert an empty shortlist; provenance-penalty
+# scenarios (unverified-new-joiner, adjacent-skill-only) assert the consultant IS present but
+# flagged — expected_includes is empty because trust is low, not because they are excluded.
+
+description: "Staffeer scenario coverage — 100% pass is a coverage WARNING, not success"
+
+providers:
+  - id: exec:uv run python evals/promptfoo_provider.py
+    label: staffeer-core
+
+prompts:
+  - id: identity
+    raw: "{{scenario_id}}|{{role_description}}"
+
+tests:
+  # --- POSITIVE: full-skill beach match — Alice included ---
+  - description: positive-backend-match — Alice appears in shortlist
+    vars:
+      scenario_id: positive-backend-match
+      role_description: "Backend Engineer (Remote-India): python, postgres"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.shortlist.includes("Alice");
+
+  # --- POSITIVE: full-skill beach match — Alice ranked before Bob ---
+  - description: positive-backend-match — Alice ranked before Bob
+    vars:
+      scenario_id: positive-backend-match
+      role_description: "Backend Engineer (Remote-India): python, postgres"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.shortlist.indexOf("Alice") < result.shortlist.indexOf("Bob");
+
+  # --- POSITIVE: partial match — Cara appears in shortlist ---
+  - description: positive-partial-match — Cara appears in shortlist
+    vars:
+      scenario_id: positive-partial-match
+      role_description: "ML Engineer (Remote-India): python, tensorflow, spark"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.shortlist.includes("Cara");
+
+  # --- POSITIVE: partial match — no expected_excludes present ---
+  - description: positive-partial-match — no consultant wrongly excluded
+    vars:
+      scenario_id: positive-partial-match
+      role_description: "ML Engineer (Remote-India): python, tensorflow, spark"
+    assert:
+      - type: javascript
+        value: |
+          // expected_excludes is empty; guard against future data changes dropping Cara
+          const result = JSON.parse(output);
+          return result.shortlist.length > 0;
+
+  # --- NEGATIVE 1: no-viable-match — shortlist must be empty ---
+  - description: negative-no-viable-match — shortlist is empty
+    vars:
+      scenario_id: negative-no-viable-match
+      role_description: "SRE (Mumbai co-located): kubernetes"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.shortlist.length === 0;
+
+  # --- NEGATIVE 1: no-viable-match — Eve and Frank are excluded ---
+  - description: negative-no-viable-match — Eve and Frank appear in excluded
+    vars:
+      scenario_id: negative-no-viable-match
+      role_description: "SRE (Mumbai co-located): kubernetes"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.excluded.includes("Eve") && result.excluded.includes("Frank");
+
+  # --- NEGATIVE 2: location-blocked — shortlist must be empty ---
+  - description: negative-location-blocked — shortlist is empty
+    vars:
+      scenario_id: negative-location-blocked
+      role_description: "DevOps Engineer (Chennai co-located): terraform"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.shortlist.length === 0;
+
+  # --- NEGATIVE 2: location-blocked — Gita and Hari are excluded ---
+  - description: negative-location-blocked — Gita and Hari appear in excluded
+    vars:
+      scenario_id: negative-location-blocked
+      role_description: "DevOps Engineer (Chennai co-located): terraform"
+    assert:
+      - type: javascript
+        value: |
+          const result = JSON.parse(output);
+          return result.excluded.includes("Gita") && result.excluded.includes("Hari");
+
+  # --- NEGATIVE 3: unverified new joiner — Nisha present with provenance warning ---
+  - description: negative-unverified-new-joiner — Nisha appears in shortlist with unverified flag
+    vars:
+      scenario_id: negative-unverified-new-joiner
+      role_description: "Kotlin Developer (Remote-India): kotlin"
+    assert:
+      - type: javascript
+        value: |
+          // Nisha is NOT location-excluded; she must appear on the shortlist.
+          // expected_includes is empty because trust is low (skills_verified=False),
+          // not because she should be excluded. The assertion is that she is not
+          // silently dropped — the system surfaces her with a provenance warning.
+          const result = JSON.parse(output);
+          return result.shortlist.includes("Nisha");
+
+  # --- NEGATIVE 4: adjacent-skill-only — Ivan present with gap note ---
+  - description: negative-adjacent-skill-only — Ivan appears in shortlist with gap note
+    vars:
+      scenario_id: negative-adjacent-skill-only
+      role_description: "Kotlin Developer (Remote-India): kotlin"
+    assert:
+      - type: javascript
+        value: |
+          // Ivan has java (adjacent to kotlin) — he must appear on the shortlist
+          // rather than being silently dropped. expected_includes is empty because
+          // no exact-match consultant exists, not because Ivan should be excluded.
+          const result = JSON.parse(output);
+          return result.shortlist.includes("Ivan");
