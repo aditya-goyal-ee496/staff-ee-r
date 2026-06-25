@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 
 from staffeer.domain.errors import SemanticIndexError
 from staffeer.ports.semantic_index import Hit, IndexItem
@@ -33,6 +34,8 @@ class MilvusSemanticIndex:
         self._model = SentenceTransformer(model_name)
         probe: list[float] = self._model.encode("probe").tolist()
         self._dim = len(probe)
+        # Milvus Lite opens (not creates) the db file's directory; make it exist first.
+        Path(db_path).expanduser().parent.mkdir(parents=True, exist_ok=True)
         self._client: MilvusClient = MilvusClient(db_path)
         self._DataType = DataType
         self._ensure_collection()
