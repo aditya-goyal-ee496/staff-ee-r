@@ -84,7 +84,7 @@
     <h1>Staffeer — Build DAG</h1>
     <p>Demand-supply matcher · task dependency graph from <code>docs/tasks/</code></p>
     <div class="meta">
-      Snapshot: <strong>2026-06-24</strong> · Branch: <code>feat/skill-matching-cli</code> ·
+      Snapshot: <strong>2026-06-25</strong> · Branch: <code>main</code> (through I4 + semantic wiring merged) ·
       Structure: <code>parallelization-guide.md</code> (bootstrap → contracts → tracks → integration)
     </div>
   </header>
@@ -92,15 +92,15 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~50%</div>
+      <div class="num">~75%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:50%"></span></div>
-      <div class="sub">54 of 108 tracked task items</div>
+      <div class="bar"><span style="width:75%"></span></div>
+      <div class="sub">126 of 167 tracked task items</div>
     </div>
     <div class="card">
-      <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
+      <div class="num">4<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
       <div class="lbl">Integration slices shipped</div>
-      <div class="sub">I1 beach matcher live; I2 skill scoring complete; I3 semantic blend complete</div>
+      <div class="sub">I1 beach · I2 skill scoring · I3 semantic blend · I4 LLM soft score + free-text</div>
     </div>
     <div class="card">
       <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
@@ -110,7 +110,7 @@
     <div class="card">
       <div class="num">✅</div>
       <div class="lbl">Critical path to first ship</div>
-      <div class="sub">S0 → C1 → (Track A ‖ xlsx) → I1 → I2 complete</div>
+      <div class="sub">beach + skills + semantic + LLM soft scoring all live</div>
     </div>
   </section>
 
@@ -230,15 +230,15 @@
     </ul></div>
   </details>
 
-  <details class="item" id="D">
+  <details class="item" id="D" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
+      <span class="badge b-done">Done</span>
       <span class="title">Track D — Semantic adapter <small>slice 05 · Milvus Lite</small></span>
       <span class="dep">depends on: C2</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo">Milvus Lite index adapter (<code>adapters/milvus_index.py</code>) + round-trip test</li>
-      <li class="t-todo">Embedding-model choice + ADR</li>
+      <li class="t-done">Milvus Lite index adapter (<code>adapters/milvus_index.py</code>) + round-trip / contract tests</li>
+      <li class="t-done">Embedding-model choice (sentence-transformers <code>all-MiniLM-L6-v2</code>) + ADR 005</li>
     </ul></div>
   </details>
 
@@ -301,16 +301,16 @@
     </ul></div>
   </details>
 
-  <details class="item" id="I4">
+  <details class="item" id="I4" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
-      <span class="title">I4 — LLM soft scoring + free-text role <small>slice 06</small></span>
+      <span class="badge b-done">Done</span>
+      <span class="title">I4 — LLM soft scoring + free-text role <small>slice 06 · <code>match-text</code></small></span>
       <span class="dep">depends on: I2, E, C</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo">Swap <code>NullLLMReasoner</code>→DSPy; soft-score contributor + rationale citations</li>
-      <li class="t-todo">Free-text role queries; PII-scrubbed LLM input; call logging; abstention</li>
-      <li class="t-todo">Blocked on: C2 + Track C + Track E (order-free with I3)</li>
+      <li class="t-done">Swap <code>NullLLMReasoner</code>→DSPy; soft-score contributor + rationale in explanation</li>
+      <li class="t-done">Free-text role queries (<code>match-text</code>); PII-scrubbed LLM input; abstention on failure</li>
+      <li class="t-done">Live via <code>staffeer match-text "…"</code> (needs <code>OPENROUTER_API_KEY</code>)</li>
     </ul></div>
   </details>
 
@@ -370,11 +370,11 @@ const NODES = [
   { id:'F',  label:'Track F · Evals',         sub:'golden harness',  status:'wip',  layer:2, order:3 },
   { id:'C2', label:'C2 · Contracts w2',       sub:'semantic + LLM',  status:'done', layer:2, order:4 },
   { id:'I1', label:'I1 · Beach e2e',          sub:'first ship',      status:'done', layer:3, order:0 },
-  { id:'D',  label:'Track D · Semantic',      sub:'Milvus Lite',     status:'todo', layer:3, order:3 },
+  { id:'D',  label:'Track D · Semantic',      sub:'Milvus Lite',     status:'done', layer:3, order:3 },
   { id:'E',  label:'Track E · LLM',           sub:'DSPy/OpenRouter', status:'done', layer:3, order:4 },
   { id:'I2', label:'I2 · Skill scoring',      sub:'ranked output',   status:'done', layer:4, order:0 },
   { id:'I3', label:'I3 · Semantic blend',     sub:'--semantic',      status:'done', layer:5, order:0 },
-  { id:'I4', label:'I4 · LLM soft score',     sub:'free-text role',  status:'todo', layer:5, order:1 },
+  { id:'I4', label:'I4 · LLM soft score',     sub:'free-text role',  status:'done', layer:5, order:1 },
   { id:'I5', label:'I5 · Supply expansion',   sub:'roll-offs',       status:'todo', layer:5, order:2 },
   { id:'I6', label:'I6 · Relevance evals',    sub:'LLM-as-judge',    status:'todo', layer:6, order:0 },
   { id:'I7', label:'I7 · Optional',           sub:'team/web UI',     status:'todo', layer:6, order:1 },
