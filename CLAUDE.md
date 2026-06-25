@@ -124,7 +124,7 @@ record. See `.claude/commands/specify.md` for the full spec format and contract-
   directly to `main`.
 - **PRs:** small (reviewable in <30 min), squash WIP/fixup, describe what/why/how-to-test, delete
   the branch after merge. All CI checks (lint + test) must pass; PRs touching scoring/prompts must
-  show eval results.
+  show eval results. PRs that touch scoring weights, LLM prompts, or the eval datasets must include an eval summary (run `make eval` and paste the output into the PR description).
 
 ### Automating the loop
 

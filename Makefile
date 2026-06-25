@@ -18,8 +18,13 @@ install:  ## Install dependencies (llm + nlp + semantic + parse extras) into the
 test:  ## Run unit + integration tests
 	uv run pytest
 
-eval:  ## Run deterministic scenario evals (Promptfoo + DeepEval relevance suites land later)
-	uv run pytest evals
+eval:  ## Run deterministic scenario evals (always) and deepeval integration suites (skipped gracefully when extra absent)
+	uv run pytest evals --ignore=evals/deepeval -q
+	@if uv run python -c "import deepeval" 2>/dev/null; then \
+		uv run pytest evals/deepeval -q -m integration; \
+	else \
+		echo "Skipped: deepeval extra not installed (uv sync --extra eval) or no API key"; \
+	fi
 
 lint:  ## Check formatting, lint, and types
 	uv run ruff format --check .

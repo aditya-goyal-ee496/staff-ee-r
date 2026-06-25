@@ -92,15 +92,15 @@
   <!-- ── Summary cards ───────────────────────────────────────── -->
   <section class="cards">
     <div class="card">
-      <div class="num">~83%</div>
+      <div class="num">~86%</div>
       <div class="lbl">Roadmap tasks complete</div>
-      <div class="bar"><span style="width:83%"></span></div>
-      <div class="sub">139 of 167 tracked task items</div>
+      <div class="bar"><span style="width:86%"></span></div>
+      <div class="sub">146 of 170 tracked task items</div>
     </div>
     <div class="card">
-      <div class="num">5<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
+      <div class="num">6<span style="font-size:18px;color:var(--muted)"> / 7</span></div>
       <div class="lbl">Integration slices shipped</div>
-      <div class="sub">I1 beach · I2 skill scoring · I3 semantic blend · I4 LLM soft score + free-text · I5 supply expansion</div>
+      <div class="sub">I1 beach · I2 skill scoring · I3 semantic blend · I4 LLM soft score + free-text · I5 supply expansion · I6 relevance evals</div>
     </div>
     <div class="card">
       <div class="num">3<span style="font-size:18px;color:var(--muted)"> / 3</span></div>
@@ -110,7 +110,7 @@
     <div class="card">
       <div class="num">✅</div>
       <div class="lbl">Critical path to first ship</div>
-      <div class="sub">beach + skills + semantic + LLM soft scoring all live</div>
+      <div class="sub">beach + skills + semantic + LLM soft scoring + eval harness all live</div>
     </div>
   </section>
 
@@ -216,17 +216,17 @@
     </ul></div>
   </details>
 
-  <details class="item" id="F">
+  <details class="item" id="F" open>
     <summary>
-      <span class="badge b-wip">Partial</span>
+      <span class="badge b-done">Done</span>
       <span class="title">Track F — Eval scaffolding <small>slices 02 + 07 · two eval tiers</small></span>
       <span class="dep">depends on: C1</span>
     </summary>
     <div class="tasks"><ul>
       <li class="t-done">Deterministic golden-table harness (<code>evals/test_constraint_scenarios.py</code>, <code>evals/README.md</code>)</li>
       <li class="t-done"><code>make eval</code> → <code>uv run pytest evals</code></li>
-      <li class="t-todo">Promptfoo + DeepEval relevance skeleton (LLM-as-judge)</li>
-      <li class="t-todo">Heavy-lane CI workflow (<code>integration.yml</code>, scheduled / label-gated)</li>
+      <li class="t-done">Promptfoo + DeepEval relevance suites (LLM-as-judge, I6)</li>
+      <li class="t-done">Heavy-lane CI workflow (<code>integration.yml</code>, scheduled / label-gated)</li>
     </ul></div>
   </details>
 
@@ -336,16 +336,20 @@
     </ul></div>
   </details>
 
-  <details class="item" id="I6">
+  <details class="item" id="I6" open>
     <summary>
-      <span class="badge b-todo">Not started</span>
+      <span class="badge b-done">Done</span>
       <span class="title">I6 — Relevance evals <small>slice 07 · heavy lane, LLM-as-judge</small></span>
       <span class="dep">depends on: I4, F</span>
     </summary>
     <div class="tasks"><ul>
-      <li class="t-todo">Promptfoo scenarios + DeepEval relevance/faithfulness metrics</li>
-      <li class="t-todo">Negative scenarios mandatory; 100% relevance = coverage warning</li>
-      <li class="t-todo">Blocked on: I4 + Track F</li>
+      <li class="t-done">Promptfoo provider + YAML wired to CLI/core (2 positive + 4 negative scenarios)</li>
+      <li class="t-done">DeepEval relevance + faithfulness LLM-as-judge suites with deliberate thresholds</li>
+      <li class="t-done">Negative scenarios covered (no viable match, location-blocked, unverified new joiner, adjacent-skill)</li>
+      <li class="t-done">100% relevance coverage guard implemented (warns, not success)</li>
+      <li class="t-done"><code>make eval</code> runs deterministic + relevance suites (both layers)</li>
+      <li class="t-done">Heavy-lane CI (<code>integration.yml</code>) with scheduled/label-gated LLM evals</li>
+      <li class="t-done">README + CLAUDE.md updated with eval guidance</li>
     </ul></div>
   </details>
 
@@ -376,7 +380,7 @@ const NODES = [
   { id:'A',  label:'Track A · Domain core',   sub:'slices 02+03',    status:'done', layer:2, order:0 },
   { id:'B',  label:'Track B · Data adapters', sub:'xlsx/docling/md', status:'done', layer:2, order:1 },
   { id:'C',  label:'Track C · PII',           sub:'Presidio',        status:'done', layer:2, order:2 },
-  { id:'F',  label:'Track F · Evals',         sub:'golden harness',  status:'wip',  layer:2, order:3 },
+  { id:'F',  label:'Track F · Evals',         sub:'golden + relevance', status:'done',  layer:2, order:3 },
   { id:'C2', label:'C2 · Contracts w2',       sub:'semantic + LLM',  status:'done', layer:2, order:4 },
   { id:'I1', label:'I1 · Beach e2e',          sub:'first ship',      status:'done', layer:3, order:0 },
   { id:'D',  label:'Track D · Semantic',      sub:'Milvus Lite',     status:'done', layer:3, order:3 },
@@ -385,7 +389,7 @@ const NODES = [
   { id:'I3', label:'I3 · Semantic blend',     sub:'--semantic',      status:'done', layer:5, order:0 },
   { id:'I4', label:'I4 · LLM soft score',     sub:'free-text role',  status:'done', layer:5, order:1 },
   { id:'I5', label:'I5 · Supply expansion',   sub:'roll-offs',       status:'done', layer:5, order:2 },
-  { id:'I6', label:'I6 · Relevance evals',    sub:'LLM-as-judge',    status:'todo', layer:6, order:0 },
+  { id:'I6', label:'I6 · Relevance evals',    sub:'LLM-as-judge',    status:'done', layer:6, order:0 },
   { id:'I7', label:'I7 · Optional',           sub:'team/web UI',     status:'todo', layer:6, order:1 },
 ];
 const EDGES = [
