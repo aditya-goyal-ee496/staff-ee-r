@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install test eval lint format match match-text index arch clean
+.PHONY: help install install-web test eval lint format match match-text index web arch clean
 
 ROLE ?= backend engineer with database experience
 
@@ -52,6 +52,12 @@ arch:  ## Build + serve the LikeC4 diagram viewer (requires Node; build then pre
 	# prints a clickable localhost URL.
 	npx likec4 build
 	npx likec4 preview
+
+install-web:  ## Install web extra (FastAPI + uvicorn) into the project venv
+	uv sync --extra web
+
+web:  ## Start the Staffeer web UI at http://localhost:8765
+	uv run staffeer web --port 8765
 
 clean:  ## Remove caches and build artifacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache **/__pycache__

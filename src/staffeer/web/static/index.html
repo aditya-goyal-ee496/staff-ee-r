@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staffeer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3148;
+      --accent: #6c7bff;
+      --accent-dim: #3d4693;
+      --text: #e2e4f0;
+      --muted: #7880a0;
+      --success: #4ade80;
+      --warn: #facc15;
+      --danger: #f87171;
+      --radius: 8px;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+    header span.sub { color: var(--muted); font-size: 12px; }
+
+    .layout { display: flex; height: calc(100vh - 57px); }
+
+    nav {
+      width: 200px;
+      min-width: 200px;
+      border-right: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    nav button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    nav button:hover { color: var(--text); background: rgba(108, 123, 255, 0.06); }
+    nav button.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: rgba(108, 123, 255, 0.08);
+    }
+
+    main { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+    .panel { display: none; max-width: 760px; }
+    .panel.active { display: block; }
+
+    h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .desc { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+
+    .form-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 12px; flex-wrap: wrap; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    input[type="text"], select, textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 11px;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    input[type="text"] { width: 260px; }
+    textarea { width: 100%; min-height: 80px; resize: vertical; }
+    select { min-width: 180px; }
+
+    .opts { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .check { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: var(--muted); }
+    .check input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; }
+
+    button.btn {
+      padding: 8px 18px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    button.btn:hover { background: #7d8cff; }
+    button.btn:disabled { background: var(--accent-dim); cursor: not-allowed; }
+    button.btn.secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff4; border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: var(--danger);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 12px;
+      margin-top: 14px;
+    }
+
+    /* Roles table */
+    .roles-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    .roles-table th {
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .roles-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    .roles-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .roles-table button.use-role {
+      font-size: 11px;
+      padding: 3px 9px;
+      background: none;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .roles-table button.use-role:hover { background: var(--accent-dim); color: #fff; }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge.high { background: rgba(248,113,113,0.15); color: var(--danger); }
+    .badge.medium { background: rgba(250,204,21,0.12); color: var(--warn); }
+    .badge.low { background: rgba(74,222,128,0.1); color: var(--success); }
+
+    .skill-pill {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: rgba(108,123,255,0.12);
+      color: var(--accent);
+      margin: 2px 2px 2px 0;
+    }
+
+    /* Shortlist */
+    .shortlist { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .match-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .match-card:hover { border-color: var(--accent-dim); }
+
+    .match-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      justify-content: space-between;
+    }
+    .match-header-left { display: flex; align-items: center; gap: 12px; }
+
+    .rank-badge {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .rank-badge.rank-1 { background: rgba(250,204,21,0.15); color: var(--warn); }
+    .rank-badge.rank-2 { background: rgba(156,163,175,0.15); color: #9ca3af; }
+    .rank-badge.rank-3 { background: rgba(180,120,90,0.15); color: #cd9b75; }
+
+    .match-name { font-weight: 600; font-size: 14px; }
+    .match-meta { font-size: 11px; color: var(--muted); }
+
+    .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .score-bar {
+      width: 80px; height: 5px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s; }
+    .score-val { font-size: 11px; color: var(--muted); font-family: var(--mono); width: 36px; text-align: right; }
+
+    .chevron { color: var(--muted); font-size: 11px; transition: transform 0.2s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .match-body { display: none; padding: 0 16px 14px; border-top: 1px solid var(--border); }
+    .match-body.open { display: block; }
+
+    .contributions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 10px; }
+    .contrib {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      min-width: 80px;
+    }
+    .contrib-src { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+    .contrib-val { font-size: 15px; font-weight: 600; font-family: var(--mono); }
+
+    .factors-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .factor { padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .factor:last-child { border-bottom: none; }
+    .factor-src { font-size: 10px; color: var(--accent); font-weight: 600; margin-bottom: 2px; }
+    .factor-summary { font-size: 12px; }
+    .factor-detail { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+    .excluded-section { margin-top: 18px; }
+    .excluded-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .excluded-item {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .excluded-item:last-child { border-bottom: none; }
+    .excluded-name { color: var(--text); font-weight: 500; min-width: 140px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+
+    .role-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .role-info-title { font-weight: 600; }
+    .role-info-meta { font-size: 12px; color: var(--muted); }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .section-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .roles-loading { color: var(--muted); font-size: 13px; padding: 20px 0; }
+    .state-pill {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: rgba(108,123,255,0.1);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Staffeer</h1>
+  <span class="sub">Ranked, explainable consultant shortlists</span>
+</header>
+
+<div class="layout">
+  <nav>
+    <button class="active" data-panel="roles">Roles</button>
+    <button data-panel="match">Match by ID</button>
+    <button data-panel="match-text">Free-text match</button>
+  </nav>
+
+  <main>
+
+    <!-- ROLES panel -->
+    <div class="panel active" id="panel-roles">
+      <h2>Open Roles</h2>
+      <p class="desc">All open roles from the demand workbook.</p>
+      <button class="btn" id="btn-load-roles">Load roles</button>
+      <div id="roles-result"></div>
+    </div>
+
+    <!-- MATCH panel -->
+    <div class="panel" id="panel-match">
+      <h2>Match by Role ID</h2>
+      <p class="desc">Enter a role ID (e.g. ROLE-01) and get the ranked shortlist.</p>
+
+      <div class="form-row">
+        <div class="field">
+          <label>Role ID</label>
+          <input type="text" id="match-role-id" placeholder="ROLE-01" />
+        </div>
+        <button class="btn" id="btn-match">Match</button>
+      </div>
+
+      <div class="opts">
+        <label class="check">
+          <input type="checkbox" id="match-show-excluded" />
+          Show excluded
+        </label>
+        <label class="check">
+          <input type="checkbox" id="match-semantic" />
+          Semantic matching
+        </label>
+        <div class="field" style="margin-left:auto">
+          <label>Include supply states</label>
+          <select id="match-include" multiple size="2" style="min-width:160px; height:52px;">
+            <option value="rolling_off">Rolling off</option>
+            <option value="new_joiner">New joiner</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="match-result"></div>
+    </div>
+
+    <!-- MATCH TEXT panel -->
+    <div class="panel" id="panel-match-text">
+      <h2>Free-text Match</h2>
+      <p class="desc">Describe the role in plain English — requires <code>OPENROUTER_API_KEY</code>.</p>
+
+      <div class="field" style="margin-bottom:12px;">
+        <label>Role description</label>
+        <textarea id="matchtext-query" placeholder="e.g. Senior backend engineer with Kotlin and Kafka experience, based in London, starting next month."></textarea>
+      </div>
+
+      <div class="form-row">
+        <button class="btn" id="btn-match-text">Match</button>
+        <label class="check">
+          <input type="checkbox" id="matchtext-show-excluded" />
+          Show excluded
+        </label>
+        <label class="check">
+          <input type="checkbox" id="matchtext-semantic" />
+          Semantic matching
+        </label>
+      </div>
+
+      <div id="matchtext-result"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // --- Nav ---
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+    });
+  });
+
+  // --- API helpers ---
+  async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(path, opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    return data;
+  }
+
+  function setLoading(btn, loading) {
+    if (loading) {
+      btn.disabled = true;
+      btn._orig = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner"></span> Running…';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn._orig;
+    }
+  }
+
+  function errorBox(msg) {
+    return `<div class="error-box">⚠ ${msg}</div>`;
+  }
+
+  // --- Shortlist renderer ---
+  function scoreColor(v) {
+    if (v >= 0.7) return '#4ade80';
+    if (v >= 0.4) return '#facc15';
+    return '#f87171';
+  }
+
+  function renderShortlist(data) {
+    let html = '';
+
+    // Role info bar
+    html += `<div class="role-info">
+      <span class="role-info-title">${data.role.title}</span>
+      <span class="role-info-meta">${data.role.location}</span>
+      <span class="badge ${data.role.priority}">${data.role.priority}</span>
+    </div>`;
+
+    if (!data.matches.length) {
+      html += `<div class="empty-state"><div class="icon">🔍</div>No eligible consultants found for this role.</div>`;
+    } else {
+      html += `<div class="section-label">${data.matches.length} match${data.matches.length !== 1 ? 'es' : ''}</div>`;
+      html += `<div class="shortlist">`;
+      data.matches.forEach(m => {
+        const pct = Math.min(100, Math.round(m.score * 100));
+        const rankClass = m.rank <= 3 ? `rank-${m.rank}` : '';
+        const contrib = m.contributions.filter(c => c.weighted > 0);
+        html += `
+          <div class="match-card">
+            <div class="match-header" onclick="toggleCard(this)">
+              <div class="match-header-left">
+                <div class="rank-badge ${rankClass}">${m.rank}</div>
+                <div>
+                  <div class="match-name">${m.name}</div>
+                  <div class="match-meta">${m.grade || 'n/a'} · ${m.location} · <span class="state-pill">${m.state}</span>${m.available_from ? ' · from ' + m.available_from : ''}</div>
+                </div>
+              </div>
+              <div class="score-bar-wrap">
+                <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%; background:${scoreColor(m.score)}"></div></div>
+                <span class="score-val" style="color:${scoreColor(m.score)}">${m.score.toFixed(3)}</span>
+                <span class="chevron">▼</span>
+              </div>
+            </div>
+            <div class="match-body">
+              ${contrib.length ? `<div class="contributions">${contrib.map(c => `
+                <div class="contrib">
+                  <div class="contrib-src">${c.source}</div>
+                  <div class="contrib-val" style="color:${scoreColor(c.weighted)}">${c.weighted.toFixed(3)}</div>
+                </div>`).join('')}
+              </div>` : ''}
+              <div class="factors-title">Why this rank</div>
+              ${m.explanation.map(f => `
+                <div class="factor">
+                  <div class="factor-src">${f.source}</div>
+                  <div class="factor-summary">${f.summary}</div>
+                  ${f.detail ? `<div class="factor-detail">${f.detail}</div>` : ''}
+                </div>`).join('')}
+            </div>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+
+    if (data.excluded && data.excluded.length) {
+      html += `<div class="excluded-section">
+        <div class="excluded-title">Excluded (${data.excluded.length})</div>
+        ${data.excluded.map(e => `
+          <div class="excluded-item">
+            <span class="excluded-name">${e.name} <span style="color:var(--muted);font-weight:400">(${e.location})</span></span>
+            <span>${e.reasons.map(r => r.reason).join('; ')}</span>
+          </div>`).join('')}
+      </div>`;
+    }
+
+    return html;
+  }
+
+  function toggleCard(header) {
+    const body = header.nextElementSibling;
+    const chevron = header.querySelector('.chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+  }
+
+  // --- Roles ---
+  document.getElementById('btn-load-roles').addEventListener('click', async function() {
+    const out = document.getElementById('roles-result');
+    setLoading(this, true);
+    out.innerHTML = '<p class="roles-loading">Loading…</p>';
+    try {
+      const roles = await api('GET', '/api/roles');
+      if (!roles.length) {
+        out.innerHTML = '<div class="empty-state"><div class="icon">📋</div>No open roles found.</div>';
+        return;
+      }
+      let html = `<table class="roles-table">
+        <thead><tr>
+          <th>ID</th><th>Title</th><th>Location</th><th>Priority</th><th>Skills</th><th>Start</th><th></th>
+        </tr></thead><tbody>`;
+      roles.forEach(r => {
+        const skills = r.required_skills.map(s => `<span class="skill-pill">${s}</span>`).join('') || '<span style="color:var(--muted)">—</span>';
+        html += `<tr>
+          <td style="font-family:var(--mono);font-size:12px">${r.id}</td>
+          <td>${r.title}</td>
+          <td>${r.location}</td>
+          <td><span class="badge ${r.priority}">${r.priority}</span></td>
+          <td>${skills}</td>
+          <td style="color:var(--muted);font-size:12px">${r.start_date || '—'}</td>
+          <td><button class="use-role" data-id="${r.id}" onclick="useRole('${r.id}')">Match →</button></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      out.innerHTML = html;
+    } catch (e) {
+      out.innerHTML = errorBox(e.message);
+    } finally {
+      setLoading(this, false);
+    }
+  });
+
+  function useRole(id) {
+    document.getElementById('match-role-id').value = id;
+    document.querySelector('[data-panel="match"]').click();
+  }
+
+  // --- Match by ID ---
+  document.getElementById('btn-match').addEventListener('click', async function() {
+    const out = document.getElementById('match-result');
+    const roleId = document.getElementById('match-role-id').value.trim();
+    if (!roleId) { out.innerHTML = errorBox('Enter a role ID.'); return; }
+    const showExcluded = document.getElementById('match-show-excluded').checked;
+    const semantic = document.getElementById('match-semantic').checked;
+    const includeEl = document.getElementById('match-include');
+    const include = Array.from(includeEl.selectedOptions).map(o => o.value);
+    setLoading(this, true);
+    out.innerHTML = '';
+    try {
+      const data = await api('POST', '/api/match', { role_id: roleId, show_excluded: showExcluded, semantic, include });
+      out.innerHTML = renderShortlist(data);
+    } catch (e) {
+      out.innerHTML = errorBox(e.message);
+    } finally {
+      setLoading(this, false);
+    }
+  });
+
+  // --- Match text ---
+  document.getElementById('btn-match-text').addEventListener('click', async function() {
+    const out = document.getElementById('matchtext-result');
+    const query = document.getElementById('matchtext-query').value.trim();
+    if (!query) { out.innerHTML = errorBox('Enter a role description.'); return; }
+    const showExcluded = document.getElementById('matchtext-show-excluded').checked;
+    const semantic = document.getElementById('matchtext-semantic').checked;
+    setLoading(this, true);
+    out.innerHTML = '';
+    try {
+      const data = await api('POST', '/api/match-text', { query, show_excluded: showExcluded, semantic });
+      out.innerHTML = renderShortlist(data);
+    } catch (e) {
+      out.innerHTML = errorBox(e.message);
+    } finally {
+      setLoading(this, false);
+    }
+  });
+
+  // Enter key in role ID field triggers match
+  document.getElementById('match-role-id').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-match').click();
+  });
+</script>
+</body>
+</html>

@@ -235,6 +235,21 @@ def _format_excluded(result: EligibilityResult) -> str:
     return f"  - {result.consultant.name} ({result.consultant.location}): {reasons}"
 
 
+@app.command()
+def web(
+    host: str = typer.Option("127.0.0.1", "--host", help="Bind address."),
+    port: int = typer.Option(8000, "--port", help="Port to listen on."),
+) -> None:
+    """Start the Staffeer web UI (requires the [web] extra)."""
+    try:
+        import uvicorn  # noqa: PLC0415
+    except ImportError:
+        typer.echo("error: uvicorn is not installed — run `uv sync --extra web` first.", err=True)
+        raise typer.Exit(code=1) from None
+    typer.echo(f"Starting Staffeer UI at http://{host}:{port}")
+    uvicorn.run("staffeer.web.app:app", host=host, port=port, reload=False)
+
+
 def main() -> None:
     """Console-script entry point (`staffeer`): load `.env`, then dispatch commands."""
     load_env_file()

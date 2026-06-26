@@ -20,6 +20,7 @@ nlp = ["presidio-analyzer>=2.2", "presidio-anonymizer>=2.2", "spacy>=3.7", "pymi
 semantic = ["pymilvus[milvus_lite]>=2.4", "sentence-transformers>=3.0"]
 parse = ["docling>=2.0"]
 eval = ["deepeval>=1.0"]
+web = ["fastapi>=0.111", "uvicorn[standard]>=0.29"]
 
 [dependency-groups]
 dev = [
@@ -64,6 +65,11 @@ ignore_missing_imports = true
 follow_imports = "skip"
 
 # structlog ships no py.typed marker in all environments; treat as Any at the boundary.
+[[tool.mypy.overrides]]
+module = ["uvicorn.*", "fastapi.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
+
 [[tool.mypy.overrides]]
 module = ["structlog.*"]
 ignore_missing_imports = true
